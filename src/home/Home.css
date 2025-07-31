@@ -1,0 +1,81 @@
+.Home {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #FFFFFF;
+}
+
+.HomeBox {
+    position: relative;
+    width: 100%;
+    min-height: calc(100vh - 94px);
+    overflow: hidden;
+}
+
+.HomeBox::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('/images/BgImg1.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 0;
+}
+
+.HomeBox_Blur {
+    position: relative;
+    width: 100%;
+    z-index: 1;
+    min-height: calc(100% - 94px);
+    background: linear-gradient(to right, #FFFFFF 39%, #FFFFFF20 100%);
+    
+    display: flex;
+    justify-content: center;
+}
+
+.HomeBox_Content {
+    margin-top: 173px;
+    width: 1200px;
+    padding-bottom: 269px;
+    display: flex;
+    flex-direction: column;
+}
+
+.HomeBox_Intro {
+    font-family: 'iceJaram-Rg';
+    font-size: 36px;
+    color: #656B70;
+}
+
+.HomeBox_Title {
+    margin-top: 11px;
+    font-family: 'ghanachoco';
+    font-size: 64px;
+    color: #3AC581;
+}
+
+.HomeBox_p {
+    margin-top: 32px;
+    font-family: 'Pretendard-SemiBold';
+    font-size: 32px;
+    color: #2C2F33;
+}
+
+.HomeBox_Button {
+    margin-top: 219px;
+    width: 265px;
+    height: 75px;
+    background-color: #3AC581;
+    border-radius: 16px;
+    border: none;
+    font-family: 'Pretendard-SemiBold';
+    font-size: 24px;
+    color: #FFFFFF;
+    cursor: pointer;
+}

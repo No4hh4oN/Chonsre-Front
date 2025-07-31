@@ -1,0 +1,70 @@
+.Header {
+    width: 100%;
+    height: 94px;
+    background-color: #FFFFFF;
+    box-shadow: 0px 2px 4.9px 0px #B6D0DC40;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.Header_Box {
+    width: 1200px;
+    height: 94px;
+    background-color: #FFFFFF;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 538px;
+}
+
+.Header_Title {
+    width: 106px !important;
+    height: 94px;
+    font-family: 'ghanachoco';
+    font-size: 36px;
+    color: #3AC581;
+    white-space: nowrap;
+    cursor: pointer;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.Header_Category {
+    height: 94px;
+    display: flex;
+    align-items: center;
+}
+
+.Header_NavItem {
+    font-family: 'Pretendard-SemiBold';
+    font-size: 22px;
+    color: #2C2F33;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+#recommand {
+    margin-left: 102px;
+}
+
+#auth {
+    width: 183px;
+    height: 54px;
+    border: 2px solid #E7ECF1;
+    border-radius: 15px;
+    font-size: 20px;
+    margin-left: 83px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#userinfo {
+    margin-left: 123px;
+}

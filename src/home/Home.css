@@ -17,7 +17,7 @@
 .HomeBox::before {
     content: '';
     position: absolute;
-    top: 0;
+    top: -50px;
     left: 0;
     right: 0;
     bottom: 0;
@@ -32,7 +32,7 @@
     position: relative;
     width: 100%;
     z-index: 1;
-    min-height: calc(100% - 94px);
+    min-height: calc(100vh - 94px);
     background: linear-gradient(to right, #FFFFFF 39%, #FFFFFF20 100%);
     
     display: flex;

@@ -30,6 +30,7 @@ export default function Header() {
     }, []);
 
     
+    // 사용자 정보 표출 드롭다운
     const [isDropdowned, setIsDropdowned] = useState(false);
 
     const dropdownRef = useRef(null);
@@ -71,6 +72,7 @@ export default function Header() {
                     )}
                 </div>
             </div>
+            
             {isDropdowned &&
                 <div className='Header_UserMenu' ref={dropdownRef}>
                     <div className='Header_UserMenuBox'>

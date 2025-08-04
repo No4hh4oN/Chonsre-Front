@@ -16,7 +16,7 @@
     background-color: #FFFFFF;
 
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     gap: 538px;
 }
@@ -83,6 +83,7 @@
 }
 
 #userInfo {
+    width: 183px;
     margin-left: 123px;
     display: flex;
     align-items: center;

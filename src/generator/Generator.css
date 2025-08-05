@@ -60,18 +60,32 @@
     gap: 268px;
 }
 
-.CourseGenerator {
+.CourseGenerator.inactive {
     margin-top: 77px;
     width: 500px;
     height: 86px;
     background-color: #B5BCC3;
     border-radius: 16px;
     border: none;
-    cursor: pointer;
+    cursor: not-allowed;
 
     font-family: 'Pretendard-SemiBold';
     font-size: 24px;
     color: #FFFFFF;
+}
+
+.CourseGenerator.active {
+    margin-top: 77px;
+    width: 500px;
+    height: 86px;
+    background-color: #B5BCC3;
+    border-radius: 16px;
+    border: none;
+    background-color: #3AC581;
+    font-family: 'Pretendard-SemiBold';
+    font-size: 24px;
+    color: #FFFFFF;
+    cursor: pointer;
 }
 
 .EmptyBox {
@@ -123,6 +137,65 @@
     color: #3AC581;
 }
 
+#trip_area,
+#trip_people,
+#trip_date {
+    cursor: pointer;
+}
+
+#trip_style {
+    justify-content: flex-start;
+    width: 110%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    border: none;
+}
+
+.date_selected,
+.date_placeholder {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 35px;
+    font-family: 'Pretendard-Regular';
+    font-size: 22px;
+    color: #B5BCC3;
+}
+
+#date_placeholder_dash {
+    font-family: 'Pretendard-SemiBold';
+    font-size: 24px;
+}
+
+/* 여행 스타일 그리드 */
+
+.Style_Items {
+    padding: 15px 23px;
+    background-color: #F3F5F7;
+    border-radius: 60px;
+    cursor: pointer;
+}
+
+#Style_Items_label {
+    font-family: 'Pretendard-Regular';
+    font-size: 22px;
+    color: #B5BCC3;
+    white-space: nowrap;
+}
+
+.Style_Items.selected {
+  background-color: #3AC581;
+}
+
+.Style_Items.selected #Style_Items_label {
+    color: #FFFFFF;
+}
+
+
+
+/* 촌캉스 지역 선택자 스타일 */
 .region-dropdown {
     position: absolute;
     top: 45px;
@@ -212,21 +285,21 @@
     color: #656B70;
 
     scrollbar-width: auto;
-  -ms-overflow-style: auto;
+    -ms-overflow-style: auto;
 }
 
 .region-list::-webkit-scrollbar {
-  display: block;
-  width: 8px;
+    display: block;
+    width: 8px;
 }
 
 .region-list::-webkit-scrollbar-thumb {
-  background-color: rgba(100, 100, 100, 0.3);
-  border-radius: 4px;
+    background-color: rgba(100, 100, 100, 0.3);
+    border-radius: 4px;
 }
 
 .region-list::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
 
 .region-list span {
@@ -240,4 +313,199 @@
     font-family: 'Pretendard-Regular';
     font-size: 13px;
     color: #B5BCC3;
+}
+
+
+/* 인원 입력 모달 스타일 */
+.CustomModal1 {
+    border-radius: 12px;
+    width: 727px;
+    height: 408px;
+    padding: 47px 58px;
+    background-color: #FFFFFF;
+    border: none;
+    outline: none;
+    z-index: 9999;
+}
+
+.CustomModalOverlay {
+    background: #00000096;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.PeopleModal_Header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: end;
+    gap: 27px;
+}
+
+.PeopleModal_Title {
+    font-family: 'Pretendard-SemiBold';
+    font-size: 28px;
+    color: #000000;
+}
+
+.PeopleModal_info {
+    font-family: 'Pretendard-Medium';
+    font-size: 16px;
+    color: #8F959B;
+}
+
+.PeopleModal_SelectBox {
+    margin-top: 108px;
+    display: flex;
+    gap: 42px;
+}
+
+.PeopleModal_Selector {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 11px;
+}
+
+#PeopleModal_label {
+    font-family: 'Pretendard-Medium';
+    font-size: 18px;
+    color: #2C2F33;
+}
+
+#PeopleModal_buttons {
+    width: 160px;
+    height: 59px;
+    padding-left: 27px;
+    padding-right: 27px;
+    background-color: #E7ECF1;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#countValue {
+    font-family: 'Pretendard-SemiBold';
+    font-size: 36px;
+    color: #2C2F33;
+}
+
+#minus,
+#plus {
+    background-color: transparent;
+    font-family: 'Pretendard-Regular';
+    font-size: 36px;
+    color: #656B70;
+    border: none;
+    outline: none;
+    cursor: pointer;
+}
+
+
+.CloseModalBtn {
+    margin-top: 64px;
+    width: 265px;
+    height: 75px;
+    background-color: #3AC581;
+    border-radius: 14px;
+    border: none;
+    outline: none;
+    font-family: 'Pretendard-SemiBold';
+    font-size: 24px;
+    color: #FFFFFF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    justify-self: center;
+    cursor: pointer;
+}
+
+/* 날짜 입력 모달 스타일 */
+.CustomModal2 {
+    border-radius: 12px;
+    width: 727px;
+    height: 355px;
+    padding: 47px 58px;
+    background-color: #FFFFFF;
+    border: none;
+    outline: none;
+    z-index: 9999;
+}
+
+.DateModal_Header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: end;
+    gap: 27px;
+}
+
+.DateModal_Title {
+    font-family: 'Pretendard-SemiBold';
+    font-size: 28px;
+    color: #000000;
+}
+
+.DateModal_SelectBox {
+    margin-top: 62px;
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+}
+
+#Date_Dash {
+    margin-top: 38px;
+    font-family: 'Pretendard-Regular';
+    font-size: 36px;
+    color: #656B70;
+}
+
+.DateModal_Departure,
+.DateModal_Arrival {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+}
+
+.DateModal_Departure span,
+.DateModal_Arrival span {
+    font-family: 'Pretendard-Medium';
+    font-size: 18px;
+    color: #2C2F33;
+}
+
+.DateModal_Departure input,
+.DateModal_Arrival input {
+    width: 340px;
+    height: 59px;
+    background-color: #F3F5F7;
+    border-radius: 12px;
+    border: none;
+    outline: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-family: 'Pretendard-Medium';
+    font-size: 18px;
+    color: #3AC581;
+}
+
+
+.DateModal_Departure input::placeholder,
+.DateModal_Arrival input::placeholder {
+    color: #B5BCC3;
+
+}
+
+.DateModal_info {
+    font-family: 'Pretendard-Medium';
+    font-size: 16px;
+    color: #8F959B;
 }

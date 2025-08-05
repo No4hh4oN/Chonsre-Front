@@ -7,7 +7,7 @@ export const setAuthToken = (token) => {
 
 // Bearer 토큰이 필요 없는 예외 URL 리스트
 const EXCLUDE_AUTH_URLS = [
-    
+  '/recommend/region-first',
 ];
 
 // Axios 인스턴스 생성

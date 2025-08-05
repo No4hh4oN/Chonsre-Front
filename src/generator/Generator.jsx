@@ -169,6 +169,10 @@ export default function Generator() {
 
 
     const getCourseRecommend = async () => {
+        if(isReadyToRequest == false) {
+            alert("모든 입력란을 채워주세요.")
+            return(0);
+        }
         try {
             const res = await AxiosClient.post('/recommend/region-first', {
                 inpStartDate: formatToDashDate(startDate),

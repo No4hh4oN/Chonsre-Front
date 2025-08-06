@@ -6,12 +6,15 @@ import pickdowndrop from '/images/dropdown-down.png';
 import regionImg from '/images/BgImg2.png';
 import backarrow from '/images/arrow-back.png';
 import nextarrow from '/images/arrow-next.png';
-
 import { useState, useEffect} from 'react';
 import axios from 'axios'
 import './CoursePick.css';
+import { useNavigate } from 'react-router-dom';
+
 
 export default function CoursePick(){
+    const navigate = useNavigate();
+
 
     // css배치용 더미 데이터
     const dummyCourses = [
@@ -197,11 +200,16 @@ export default function CoursePick(){
 
             <div className="pick-course-contents">
                 {currentData.map((course) => (
-                    <div key={course.id} className="course-card">
-                    <img src={course.image} alt="지역 이미지" />
-                    <div className="course-period">{course.period}</div>
-                    <div className="course-region">{course.region}</div>
-                    <span>{course.town}</span>
+                    <div 
+                        key={course.id} 
+                        className="course-card"
+                        onClick={() => navigate(`/CourseDetail/${course.id}`)}
+                        style={{ cursor: 'pointer' }}
+                    >
+                        <img src={course.image} alt="지역 이미지" />
+                        <div className="course-period">{course.period}</div>
+                        <div className="course-region">{course.region}</div>
+                        <span>{course.town}</span>
                     </div>
                 ))}
             </div>

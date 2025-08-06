@@ -1,0 +1,108 @@
+.CourseDetail{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.detail-main-img{
+    width: 1200px;
+    height: 484px;
+    border-radius: 16px;
+    margin-top: 45px;
+}
+.detail-course-info{
+    display: flex;
+    flex-direction: row;
+    gap: 130px;
+    margin-top: 30px;
+}
+
+.detail-course-period{
+    width: 92px;
+    height: 36px;
+    font-size: 16px;
+    border-radius: 30px;
+    background-color: #FFAF12;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.detail-course-region{
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 32px;
+    color:#2C2F33;
+}
+.detail-course-info-left{
+    font-family: 'Pretendard-Medium';
+    font-weight: 500;
+    font-size: 22px;
+    color: #8F959B;
+    width: 473px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.detail-course-info-rightBox{
+    margin-top: 40px;
+}
+
+.detail-course-day-box{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 30px;
+}
+.detail-course-day-box span{
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 22px;
+    color: #2C2F33;
+}
+.detail-course-date-selected{
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+}
+.detail-day-selected{
+    width: 210px;
+    height: 59px;
+    border-radius: 12px;
+    color: #3AC581;
+    outline: none;
+    border: none;
+    background-color: #F3F5F7;
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 18px;
+    text-align: center;
+}
+.detail-day-selected::placeholder{
+    color: #B5BCC3;
+    font-family: 'Pretendard-Medium';
+    font-weight: 500;
+    font-size: 18px;
+    text-align: center;
+}
+.detail-day-dash{
+    color: #656B70;
+    font-family: 'Pretendard-Regular';
+    font-weight: 400;
+    font-size: 36px;
+}
+
+.detail-course-info-rightBox button{
+    width: 467px;
+    height: 60px;
+    border-radius: 12px;
+    background-color: #3AC581;
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 20px;
+    text-align: center;
+    color: #ffffff;
+    border: none;
+    margin-left: 130px;
+    margin-top: 15px;
+}

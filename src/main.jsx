@@ -8,6 +8,8 @@ import Generator from './generator/Generator.jsx';
 import CoursePick from './coursePick/CoursePick.jsx';
 import CourseDetail from './coursePick/CourseDetail.jsx';
 import Test from './coursePick/test.jsx'
+import Test2 from './coursePick/test2.jsx'
+
 
 
 createRoot(document.getElementById('root')).render(
@@ -20,6 +22,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/CoursePick" element={<CoursePick />} />
         <Route path="/CourseDetail/:id" element={<CourseDetail />} />
         <Route path="/test" element={<Test />} />
+        <Route path="/test2" element={<Test2 />} />
       </Routes>
       </BrowserRouter>
   </StrictMode >,

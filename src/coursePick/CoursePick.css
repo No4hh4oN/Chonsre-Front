@@ -89,7 +89,7 @@
 }
 
 .pick-dropdown button{
-    width: 138px;
+    width: 194px;
     height: 60px;
     border-radius: 12px;
     background-color: #3AC581;
@@ -99,6 +99,7 @@
     font-size: 20px;
     text-align: center;
     color: #ffffff;
+    margin-left: 250px;
 }
 
 .pick-type-dropdown-menu-top{

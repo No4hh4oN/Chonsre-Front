@@ -12,7 +12,8 @@ const EXCLUDE_AUTH_URLS = [
 
 // Axios 인스턴스 생성
 const AxiosClient = axios.create({
-  baseURL: "http://13.125.221.236:8080",
+  // baseURL: "http://13.125.221.236:8080",
+  baseURL: "https://smartzoo.shop",
   headers: {
     "Content-Type": "application/json",
   },

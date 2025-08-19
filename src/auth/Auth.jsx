@@ -11,7 +11,8 @@ export default function Auth() {
 
     const loginWithKakao = () => {
         const REST_API_KEY = "cee9b5f605698f9a2407eab0ca03c191";
-        const REDIRECT_URI = "http://localhost:5173/Auth";
+        const REDIRECT_URI = "https://chonsre.vercel.app/Auth";
+        // const REDIRECT_URI = "http://localhost:5173/Auth";
         const kakaoURL = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}`;
         window.location.href = kakaoURL;
     };
@@ -78,13 +79,21 @@ export default function Auth() {
             }
             {isLoggedIn && (
                 <div className="NicknameBox">
+                    <div className='NicknameBox_Intro'>닉네임을 설정해주세요.</div>
                     <input
+                        className='NicknameBox_Input'
                         type="text"
-                        placeholder="닉네임을 입력하세요"
+                        placeholder="닉네임"
                         value={nickname}
                         onChange={(e) => setNickname(e.target.value)}
                     />
-                    <button onClick={handleSetNickname}>닉네임 설정</button>
+                    <button
+                        onClick={handleSetNickname}
+                        className={`NicknameButton ${nickname.trim() ? "fill" : ""}`}
+                        disabled={!nickname.trim()}
+                    >
+                        닉네임 설정
+                    </button>
                 </div>
             )}
         </div>

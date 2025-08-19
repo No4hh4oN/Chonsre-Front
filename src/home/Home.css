@@ -48,8 +48,8 @@
 }
 
 .HomeBox_Intro {
-    font-family: 'iceJaram-Rg';
-    font-size: 36px;
+    font-family: 'Pretendard-Medium';
+    font-size: 28px;
     color: #656B70;
 }
 
@@ -58,6 +58,12 @@
     font-family: 'ghanachoco';
     font-size: 64px;
     color: #3AC581;
+}
+
+#targetPlace {
+    font-family: 'iceJaram-Rg';
+    font-size: 44px;
+    color: #656B70;
 }
 
 .HomeBox_p {

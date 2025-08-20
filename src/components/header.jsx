@@ -10,6 +10,7 @@ export default function Header() {
     const navigator = useNavigate();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [nickname, setNickname] = useState('');
+    
 
     useEffect(() => {
         const accessToken = localStorage.getItem('accessToken');

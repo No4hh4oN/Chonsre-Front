@@ -9,6 +9,8 @@ import CoursePick from './coursePick/CoursePick.jsx';
 import CourseDetail from './coursePick/CourseDetail.jsx';
 import Test from './coursePick/test.jsx'
 import Test2 from './coursePick/test2.jsx'
+import Mypage from './mypage/Mypage.jsx';
+
 
 
 
@@ -23,6 +25,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/CourseDetail/:id" element={<CourseDetail />} />
         <Route path="/test" element={<Test />} />
         <Route path="/test2" element={<Test2 />} />
+        <Route path="/Mypage" element={<Mypage />} />
       </Routes>
       </BrowserRouter>
   </StrictMode >,

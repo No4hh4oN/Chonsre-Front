@@ -54,6 +54,7 @@ export default function Auth() {
         try {
             const res = await AxiosClient.post("/auth/SetNickname", { nickname });
             alert(res.data.message);
+            window.location.href = "/";
         } catch (err) {
             console.error(err);
         }

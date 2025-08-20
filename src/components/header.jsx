@@ -52,12 +52,20 @@ export default function Header() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    const handleLogout = () => {
+        setIsDropdowned(false);
+        localStorage.removeItem("accessToken");
+        setAuthToken(null); // Axios 인증 헤더 제거
+        setIsLoggedIn(false); // 상태 초기화
+        navigator('/'); // 또는 '/Auth'로 이동
+    };
+
     return (
         <div className='Header'>
             <div className='Header_Box'>
                 <div className='Header_Title' onClick={() => navigator('/')}>촌스레</div>
                 <div className='Header_Category'>
-                    <div id='create' className='Header_NavItem'>코스 만들기</div>
+                    <div id='create' className='Header_NavItem' onClick={() => navigator('/Generator')}>코스 만들기</div>
                     <div id='recommand' className='Header_NavItem'>추천 코스</div>
                     {isLoggedIn ? ( 
                         <div id='userInfo' className='Header_NavItem' onClick={() => setIsDropdowned(prev => !prev)} ref={userInfoRef}>
@@ -80,13 +88,13 @@ export default function Header() {
                             <img className='profileImg2' src={profile} alt="프로필" />
                             <div className='userNickname_Email'>
                                 <span className='userNickname' >{nickname}</span>
-                                <span className='userEmail'>shiron2001@naver.com</span>
+                                <span className='userEmail'>no4h1209@gmail.com</span>
                             </div>
                         </div>
                         <div className='Header_UserMenu_NavBox' >
                             <button id='EditProfile' className='Header_UserMenu_NavItems'>프로필 수정</button>
-                            <button id='MyPage' className='Header_UserMenu_NavItems'>마이페이지</button>
-                            <button id='Logout' className='Header_UserMenu_NavItems'>로그아웃</button>
+                            <button id='MyPage' className='Header_UserMenu_NavItems' onClick={() => navigator('/Mypage')}>마이페이지</button>
+                            <button id='Logout' className='Header_UserMenu_NavItems' onClick={handleLogout}>로그아웃</button>
                         </div>
                     </div>
                 </div>

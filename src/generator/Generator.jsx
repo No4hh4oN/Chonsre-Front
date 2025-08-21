@@ -302,7 +302,7 @@ export default function Generator() {
                             <div id="PeopleModal_buttons">
                                 <button id="minus" onClick={() => setCount(Math.max(0, count - 1))}>-</button>
                                 <span id="countValue">{count}</span>
-                                <button id="plus" onClick={() => setCount(Math.min(100, count + 1))}>+</button>
+                                <button id="plus" onClick={() => setCount(Math.min(10, count + 1))}>+</button>
                             </div>
                         </div>
                     ))}

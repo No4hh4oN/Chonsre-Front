@@ -20,6 +20,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+// ===================== Dummy Data =====================
 const dummyCourses = [
   {
     name: "A 코스",
@@ -123,7 +124,7 @@ const dummyCourses = [
   { name: "C 코스", accommodations: [], days: [] },
 ];
 
-// Sortable 아이템(핸들 전용) — render-prop으로 handle에 listeners/attributes 전달
+// ===================== Sortable Item (Drag Handle 전용) =====================
 function SortablePlace({ id, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id });
@@ -134,42 +135,36 @@ function SortablePlace({ id, children }) {
     opacity: isDragging ? 0.6 : 1,
   };
 
-  // children을 함수로 받아 내부에서 handle에만 {...listeners}를 붙일 수 있게 함
   return children({ setNodeRef, style, attributes, listeners, isDragging });
 }
 
+// ===================== Main Component =====================
 export default function CourseEditor() {
-  // 확정 데이터: __id 심어서 상태로 관리
-  const [courses, setCourses] = useState(() =>
-    dummyCourses.map((c, ci) => ({
-      ...c,
-      days: (c.days || []).map((d, di) => ({
-        ...d,
-        places: (d.places || []).map((p, pi) => ({
-          ...p,
-          __id: `${ci}-${di}-${pi}-${p.name}`, // 고유 id
-        })),
-      })),
-    }))
-  );
+  const [courses, setCourses] = useState(() => dummyCourses.map((c, ci) => ({
+    ...c,
+    days: (c.days || []).map((d, di) => ({
+      ...d,
+      places: (d.places || []).map((p, pi) => ({ ...p, __id: `${ci}-${di}-${pi}-${p.name}` })),
+    })),
+  })));
 
   const [selectedCourse, setSelectedCourse] = useState(0);
   const [selectedDay, setSelectedDay] = useState(0);
-  const course = courses[selectedCourse];
+  const [editDay, setEditDay] = useState(0);
+  const course = courses[selectedCourse] || { days: [], accommodations: [] };
   const selectedPlaces = course.days[selectedDay]?.places || [];
 
-  // 편집 모드 & 드래프트 
   const [isEditing, setIsEditing] = useState(false);
   const [draftPlaces, setDraftPlaces] = useState([]);
+  const mapRef = useRef(null);
 
   const openEdit = () => {
-    // 깊은 복사
-    setDraftPlaces(selectedPlaces.map((p) => ({ ...p })));
+    const start = selectedDay;
+    setEditDay(start);
+    const base = course.days[start]?.places || [];
+    setDraftPlaces(base.map((p) => ({ ...p })));
     setIsEditing(true);
-    // 지도 relayout 약간의 지연 후
-    setTimeout(() => {
-      if (window.kakao?.maps && mapRef.current) mapRef.current.relayout();
-    }, 180);
+    setTimeout(() => { if (window.kakao?.maps && mapRef.current) mapRef.current.relayout(); }, 180);
   };
 
   const cancelEdit = () => setIsEditing(false);
@@ -177,142 +172,134 @@ export default function CourseEditor() {
   const saveEdit = () => {
     setCourses((prev) => {
       const next = structuredClone(prev);
-      next[selectedCourse].days[selectedDay].places = draftPlaces;
+      if (!next[selectedCourse].days[editDay]) return next;
+      next[selectedCourse].days[editDay].places = draftPlaces.map(p => ({ ...p }));
       return next;
     });
     setIsEditing(false);
   };
 
-  // 맵에 반영할 소스(편집 중이면 드래프트)
-  const placesForMap = isEditing ? draftPlaces : selectedPlaces;
-
-  // Kakao Map 
-  const mapRef = useRef(null);
-
   useEffect(() => {
-    const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
-    if (!existingScript) {
+    const existing = document.querySelector('script[src*="dapi.kakao.com"]');
+    const load = () => window.kakao.maps.load(loadMap);
+    if (!existing) {
       const script = document.createElement("script");
-      script.src =
-        "//dapi.kakao.com/v2/maps/sdk.js?appkey=a78d10a9ff203286e5fcd09e0f663663&autoload=false&libraries=services";
+      script.src = "//dapi.kakao.com/v2/maps/sdk.js?appkey=a78d10a9ff203286e5fcd09e0f663663&autoload=false&libraries=services";
       script.async = true;
-      script.onload = () => window.kakao.maps.load(loadMap);
+      script.onload = load;
       document.head.appendChild(script);
     } else {
-      existingScript.addEventListener("load", () =>
-        window.kakao.maps.load(loadMap)
-      );
+      if (typeof window.kakao?.maps?.load === "function") load();
+      else existing.addEventListener("load", load);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 맵 갱신: 코스/일차/편집/순서변경 시
   useEffect(() => {
     if (window.kakao?.maps) window.kakao.maps.load(loadMap);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCourse, selectedDay, isEditing, draftPlaces, selectedPlaces]);
+  }, [selectedCourse, selectedDay, courses]);
 
   const loadMap = () => {
     const mapContainer = document.getElementById("map");
-    if (!mapContainer) return;
+    if (!mapContainer || !window.kakao?.maps) return;
 
-    const mapOption = {
-      center: new window.kakao.maps.LatLng(37.543743, 127.213535),
-      level: 7,
-    };
+    const mapOption = { center: new window.kakao.maps.LatLng(37.543743, 127.213535), level: 10 };
     const map = new window.kakao.maps.Map(mapContainer, mapOption);
     mapRef.current = map;
 
     const geocoder = new window.kakao.maps.services.Geocoder();
     const bounds = new window.kakao.maps.LatLngBounds();
+    const pathCoords = [];
 
     const createMarker = (position, name, index, isAccom = false) => {
-      const markerImage = isAccom
-        ? new window.kakao.maps.MarkerImage(
+      // 숙소만 Marker 사용, 일반 장소는 기본 마커 제거(= Marker 만들지 않음)하고 CustomOverlay만 사용
+      if (isAccom) {
+        const markerImage = new window.kakao.maps.MarkerImage(
           HomeIcon,
           new window.kakao.maps.Size(50, 50),
           { offset: new window.kakao.maps.Point(25, 25) }
-        )
-        : null;
-
-      const marker = new window.kakao.maps.Marker({
-        position,
-        map,
-        image: markerImage || undefined,
-      });
-
-      if (!isAccom) {
-        const overlay = new window.kakao.maps.CustomOverlay({
-          position,
-          content: `<div class="CourseEditor_Marker"><span>${index + 1}</span></div>`,
-          yAnchor: 1,
+        );
+        const marker = new window.kakao.maps.Marker({ position, map, image: markerImage });
+        const infowindow = new window.kakao.maps.InfoWindow({
+          content: `<div style="padding:5px;font-size:14px;">${name}</div>`,
         });
+        window.kakao.maps.event.addListener(marker, "click", () => infowindow.open(map, marker));
+      } else {
+        // 기본 마커를 만들지 않고, 숫자 원형 오버레이만 표시
+        const el = document.createElement('div');
+        el.className = 'CourseEditor_Marker';
+        el.innerHTML = `<span>${index + 1}</span>`;
+        el.style.cursor = 'pointer';
+
+
+        const overlay = new window.kakao.maps.CustomOverlay({ position, content: el, yAnchor: 0.5 });
         overlay.setMap(map);
+
+
+        // 오버레이 클릭 시 인포윈도우(마커 없이 좌표로 오픈)
+        const infowindow = new window.kakao.maps.InfoWindow({
+          content: `<div style="padding:5px;font-size:14px;">${name}</div>`,
+          removable: false,
+        });
+        el.addEventListener('click', () => {
+          infowindow.setPosition(position);
+          infowindow.open(map);
+        });
       }
 
-      const infowindow = new window.kakao.maps.InfoWindow({
-        content: `<div style="padding:5px;font-size:14px;">${name}</div>`,
-      });
-      window.kakao.maps.event.addListener(marker, "click", () => {
-        infowindow.open(map, marker);
-      });
 
       bounds.extend(position);
-      map.setBounds(bounds);
     };
 
-    const showAllMarkers = () => {
-      // 숙소(집 아이콘)
-      course.accommodations.forEach((accom) => {
-        if (accom.lat && accom.lng) {
-          const pos = new window.kakao.maps.LatLng(accom.lat, accom.lng);
-          createMarker(pos, accom.name, 0, true);
-        } else if (accom.address) {
-          geocoder.addressSearch(accom.address, (result, status) => {
-            if (status === window.kakao.maps.services.Status.OK) {
-              const pos = new window.kakao.maps.LatLng(result[0].y, result[0].x);
-              createMarker(pos, accom.name, 0, true);
-            }
-          });
-        }
-      });
+    (course.accommodations || []).forEach((a) => {
+      if (a.lat && a.lng) createMarker(new window.kakao.maps.LatLng(a.lat, a.lng), a.name, 0, true);
+      else if (a.address) geocoder.addressSearch(a.address, (res, status) => { if (status === window.kakao.maps.services.Status.OK) createMarker(new window.kakao.maps.LatLng(res[0].y, res[0].x), a.name, 0, true); });
+    });
 
-      // 관광지(번호 오버레이) — 편집 여부에 따라 드래프트/확정본 사용
-      placesForMap.forEach((place, index) => {
-        const add = (lat, lng) => {
-          const position = new window.kakao.maps.LatLng(lat, lng);
-          createMarker(position, place.name, index);
-        };
-        if (place.lat && place.lng) add(place.lat, place.lng);
-        else if (place.address) {
-          geocoder.addressSearch(place.address, (result, status) => {
+    const placePromises = (selectedPlaces || []).map((p, i) => {
+      if (p.lat && p.lng) {
+        const pos = new window.kakao.maps.LatLng(p.lat, p.lng);
+        createMarker(pos, p.name, i);
+        return Promise.resolve(pos);
+      }
+      if (p.address) {
+        return new Promise((resolve) => {
+          geocoder.addressSearch(p.address, (res, status) => {
             if (status === window.kakao.maps.services.Status.OK) {
-              add(Number(result[0].y), Number(result[0].x));
-            }
+              const pos = new window.kakao.maps.LatLng(Number(res[0].y), Number(res[0].x));
+              createMarker(pos, p.name, i);
+              resolve(pos);
+            } else resolve(null);
           });
-        }
-      });
-    };
+        });
+      }
+      return Promise.resolve(null);
+    });
 
-    showAllMarkers();
+    Promise.all(placePromises).then((coords) => {
+      coords.filter(Boolean).forEach((pos) => bounds.extend(pos));
+      if (!bounds.isEmpty()) map.setBounds(bounds);
+      const path = coords.filter(Boolean);
+      if (path.length >= 2) {
+        const polyline = new window.kakao.maps.Polyline({
+          path,
+          strokeWeight: 4,
+          strokeColor: "#3AC581",
+          strokeOpacity: 1.0,
+          strokeStyle: "solid",
+        });
+        polyline.setMap(map);
+      }
+    });
   };
 
-  // DnD
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
-  );
-
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
   const onDragEnd = ({ active, over }) => {
     if (!over || active.id === over.id) return;
     const oldIndex = draftPlaces.findIndex((p) => p.__id === active.id);
     const newIndex = draftPlaces.findIndex((p) => p.__id === over.id);
     setDraftPlaces((arr) => arrayMove(arr, oldIndex, newIndex));
   };
-
-  const placeIds = useMemo(
-    () => (isEditing ? draftPlaces : selectedPlaces).map((p) => p.__id),
-    [isEditing, draftPlaces, selectedPlaces]
-  );
+  const placeIds = useMemo(() => (isEditing ? draftPlaces : selectedPlaces).map((p) => p.__id), [isEditing, draftPlaces, selectedPlaces]);
 
   return (
     <div className="CourseEditor">
@@ -404,12 +391,30 @@ export default function CourseEditor() {
         {isEditing && (
           <aside className="CourseEditor_EditPane">
             <div className="CourseEditor_EditPane_Header">
-              <input type="text" />
-              <img src={scope} alt="" />
+              <input className="CourseEditor_EditPane_SearchBar" type="text" placeholder="가고 싶은 명소를 검색해 볼까요?" />
+              <img className="CourseEditor_EditPane_Scope" src={scope} alt="Scope" />
             </div>
             <div className="CourseEditor_EditActions">
               <button onClick={cancelEdit}></button>
             </div>
+
+            {/* 편집 패널 전용 날짜별 선택 탭 */}
+            <div className="CourseEditor_EditPane_Dates">
+              {(course.days || []).map((day, di) => (
+                <button
+                  key={di}
+                  className={`CourseEditor_EditPane_Date ${editDay === di ? "active" : ""}`}
+                  onClick={() => {
+                    setEditDay(di);
+                    const base = course.days[di]?.places || [];
+                    setDraftPlaces(base.map((p) => ({ ...p })));
+                  }}
+                >
+                  {day.title}
+                </button>
+              ))}
+            </div>
+
 
             {/* 드래그 핸들만 활성화 */}
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>

@@ -280,7 +280,6 @@
 
 .CourseEditor_EditPane_Attraction_Box {
     display: flex;
-
 }
 
 .DragHandle {
@@ -319,6 +318,32 @@
 }
 
 .CourseEditor_EditPane_Header {
+    display: flex;
+    align-items: center;
+    gap: 42px;
     margin-top: 66px;
     margin-bottom: 99px;
+}
+
+.CourseEditor_EditPane_SearchBar {
+    width: 391px;
+    height: 51px;
+    padding-left: 33px;
+    background-color: #F3F5F7;
+    border-radius: 12px;
+    border: none;
+    outline: none;
+    font-family: 'Pretendard-Regular';
+    font-size: 18px;
+    color: #2C2F33;
+}
+
+.CourseEditor_EditPane_Scope {
+    width: 33px;
+    height: 33px;
+    cursor: pointer;
+}
+
+.CourseEditor_EditPane_SearchBar::placeholder {
+    color: #B5BCC3;
 }

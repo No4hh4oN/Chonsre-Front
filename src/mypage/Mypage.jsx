@@ -9,7 +9,9 @@ import profile from '/icons/default.png';
 import editcourse from '/icons/editCourse.png';
 import edit from '/icons/edit.png';
 import coursedelete from '/icons/delete.png';
+import Modal from "react-modal";
 
+Modal.setAppElement('#root');
 
 export default function Mypage() {
     const navigator = useNavigate();
@@ -17,6 +19,11 @@ export default function Mypage() {
     // 탭: 코스 기록 / 예정된 코스 / 회원탈퇴
     const [activeTab, setActiveTab] = useState(null); // 'records' | 'scheduled' | 'withdraw' | null
     const [openMenuId, setOpenMenuId] = useState(null);
+
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [isDelAccountModalOpen, setIsDelAccountModalOpen] = useState(false);
+
+
 
     const dummyRecords = [
         { id: 1, name: "경기도 양평 코스", period: "2025년 7월 12일 - 2025년 7월 13일", image: regionImg },
@@ -35,13 +42,19 @@ export default function Mypage() {
                     <img className='mypage-profile-img' src={profile} alt="프로필사진" />
                     <div className='mypage-profile-name'>
                         <span>홍길동</span>
-                        <img src={editProfile} alt="프로필수정" />
+                        <img 
+                            src={editProfile} 
+                            alt="프로필수정" 
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => setIsProfileModalOpen(true)}
+                        />
                     </div>
                     <div className='mypage-email'>kimchons@gmail.com</div>
 
                     <span style={{ cursor: 'pointer' }} onClick={() => setActiveTab('records')}>코스 기록</span>
                     <span style={{ cursor: 'pointer' }} onClick={() => setActiveTab('scheduled')}>예정된 코스</span>
-                    <span style={{ cursor: 'pointer' }} onClick={() => setActiveTab('withdraw')}>회원탈퇴</span>
+                    <span style={{ cursor: 'pointer' }} onClick={() => {setIsDelAccountModalOpen(true)}}
+                    >회원탈퇴</span>
                 </div>
 
                 <div className='mypage-right-gray-box'>
@@ -115,12 +128,58 @@ export default function Mypage() {
                             ))}
                         </>
                     )}
-
-                    {activeTab === 'withdraw' && (
-                        <div style={{ padding: '24px' }}>회원탈퇴는 설정에서 진행해 주세요.</div>
-                    )}
                 </div>
             </div>
+
+            <Modal
+                isOpen={isProfileModalOpen}
+                onRequestClose={() => setIsProfileModalOpen(false)}
+                className="ProfileEdit-modal"
+                style={{
+                    overlay: { backgroundColor: "rgba(0,0,0,0.5)" },
+                }}
+            >
+                <div className='modal-profile-edit-top'>
+                    프로필 수정
+                    <span>프로필 사진</span>
+                </div>
+                <div className='modal-profile-img-edit'>
+                    <img src={profile} alt="프로필 사진" />
+                    <div className='modal-profile-img-buttons'>
+                        <button>사진 변경</button>
+                        <button>삭제</button>
+                    </div>
+                </div>
+                <hr style={{ border: "2px solid #E7ECF1"}} />
+                <div className='modal-nickname-box'>
+                    <span>닉네임</span>
+                    <input type="text" placeholder='김촌스' />
+                </div>
+                <div className='modal-edit-finish-buttons'>
+                    <button onClick={() => setIsProfileModalOpen(false)}>취소</button>
+                    <button onClick={() => setIsProfileModalOpen(false)}>적용</button>
+                </div>
+            </Modal>
+            <Modal
+                isOpen={isDelAccountModalOpen}
+                onRequestClose={() => setIsDelAccountModalOpen(false)}
+                className="DelAccount-modal"
+                style={{
+                    overlay: { backgroundColor: "rgba(0,0,0,0.5)" },
+                }}
+            >
+                <div className='modal-del-account-box'>
+                    <span>회원 탈퇴</span>
+                    <span>
+                        회원 탈퇴시, 해당 계정의 모든 콘텐츠가 삭제됩니다. <br />
+                        삭제된 정보는 복원할 수 없습니다.
+                    </span>
+                    <div className='modal-del-account-buttons'>
+                        <button>취소</button>
+                        <button>확인</button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }

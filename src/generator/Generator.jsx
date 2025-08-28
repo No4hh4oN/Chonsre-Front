@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from 'react-router-dom';
 import Modal from 'react-modal';
 import AxiosClient, { setAuthToken } from "../AxiosClient";
 import Header from "../components/header";
@@ -19,6 +20,7 @@ const bgImages = [
 Modal.setAppElement('#root');
 
 export default function Generator() {
+    const navigator = useNavigate();
 
     // 배경 이미지 슬라이드
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -144,17 +146,18 @@ export default function Generator() {
         setRegionModalOpen(true);
 
         try {
-            const res = await AxiosClient.post('/recommend/region-first', {
+            const res = await AxiosClient.post('/recommend/group', {
                 inpStartDate: formatToDashDate(startDate),
                 inpEndDate: formatToDashDate(endDate),
                 inpAdultCnt: adultCount,
                 inpChildCnt: childCount,
                 inpBabyCnt: babyCount,
                 inpTema: selectedTema,
+                isTemplate: false
             });
 
-            console.log(res);
-
+            console.log(res.data);
+            navigator('/CourseEditor'); 
         } catch (err) {
             console.error(err);
             alert("코스 추천 요청에 실패했습니다.");

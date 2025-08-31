@@ -23,6 +23,16 @@ export default function Mypage() {
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const [isDelAccountModalOpen, setIsDelAccountModalOpen] = useState(false);
 
+    //탈퇴 여부
+    const [delStep, setDelStep] = useState('confirm'); // ← 타입 표기 제거
+    
+    const handleDelCancel = () => {
+    setIsDelAccountModalOpen(false);
+    setDelStep('confirm'); // 닫힐 때 초기화
+    };
+    const handleDelConfirm = () => {
+    setDelStep('done'); // 글자 변경
+    };
 
 
     const dummyRecords = [
@@ -68,7 +78,12 @@ export default function Mypage() {
                                         <span className='record-course-period'>{record.period}</span>
                                     </div>
                                     <div className='record-two-button'>
-                                        <button className='record-write-review'>후기 작성하기</button>
+                                        <button 
+                                            className='record-write-review'
+                                            onClick={() => navigator(`/myReview/${record.id}`)}
+                                        >
+                                            후기 작성하기
+                                        </button>
                                         <button className='record-course-detail'>코스 자세히 보기</button>
                                     </div>
                                 </div>
@@ -162,22 +177,33 @@ export default function Mypage() {
             </Modal>
             <Modal
                 isOpen={isDelAccountModalOpen}
-                onRequestClose={() => setIsDelAccountModalOpen(false)}
+                onRequestClose={handleDelCancel}
+                onAfterClose={() => setDelStep('confirm')}
                 className="DelAccount-modal"
-                style={{
-                    overlay: { backgroundColor: "rgba(0,0,0,0.5)" },
-                }}
+                style={{ overlay: { backgroundColor: "rgba(0,0,0,0.5)" } }}
             >
                 <div className='modal-del-account-box'>
-                    <span>회원 탈퇴</span>
-                    <span>
+                    {delStep === 'confirm' ? (
+                    <>
+                        <span>회원 탈퇴</span>
+                        <span>
                         회원 탈퇴시, 해당 계정의 모든 콘텐츠가 삭제됩니다. <br />
                         삭제된 정보는 복원할 수 없습니다.
-                    </span>
-                    <div className='modal-del-account-buttons'>
-                        <button>취소</button>
-                        <button>확인</button>
-                    </div>
+                        </span>
+                        <div className='modal-del-account-buttons'>
+                            <button onClick={handleDelCancel}>취소</button>
+                            <button onClick={handleDelConfirm}>확인</button>
+                        </div>
+                    </>
+                    ) : (
+                    <>
+                        <span>탈퇴 완료</span>
+                        <span>회원 탈퇴가 완료되었습니다.</span>
+                        <div className='modal-del-account-buttons'>
+                            <button onClick={handleDelCancel}>홈 화면으로</button>
+                        </div>
+                    </>
+                    )}
                 </div>
             </Modal>
         </div>

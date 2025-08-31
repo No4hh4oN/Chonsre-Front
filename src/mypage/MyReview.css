@@ -1,0 +1,196 @@
+.myreview-main-container{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin-top: 30px;
+}
+.review-main-image{
+    position: relative;
+}
+.review-main-image img{
+    width: 1055px;
+    height: 317px;
+    border-radius: 33px;
+}
+.review-main-image .save-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    border: none;
+    cursor: pointer;
+    width: 112px;
+    height: 50px;
+    border-radius: 12px;
+    background-color: #3AC581;
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 18px;
+    text-align: center;
+    color: #ffffff;
+}
+/* 코스명/기간 왼쪽 하단 */
+.review-main-image .info-box {
+    position: absolute;
+    bottom: 25px;
+    left: 25px;
+    color: white;
+}
+.review-course-name{
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 32px;
+    color: white;
+}
+.review-course-period{
+    font-family: 'Pretendard-Medium';
+    font-weight: 500;
+    font-size: 18px;
+    color: white;
+}
+
+
+.review-detail-course-info img{
+    width: 92px;
+    height: 92px;
+    border-radius: 12px;
+}
+
+.review-course-info-box{
+    width: 440px;
+    height: 561px;
+    border-radius: 20px;
+    border: 2px solid #E7ECF1;
+    display: flex;
+    flex-direction: column;
+    /* align-items: center; */
+    /* justify-content: center; */
+}
+
+.info-period-course span{
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 24px;
+    color: #D3D8DE;
+}
+.info-period-course{
+    display: flex;
+    flex-direction: row;
+    gap: 100px;
+    margin-left: 110px;
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+.review-detail-course-info{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+}
+.course-info-text{
+    display: flex;
+    flex-direction: column;
+}
+.course-info-text span:nth-child(1){
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 22px;
+    color: #2C2F33;
+}
+.course-info-text span:nth-child(2){
+    font-family: 'Pretendard-Medium';
+    font-weight: 500;
+    font-size: 16px;
+    color: #B5BCC3;
+}
+.places-grid{
+    margin-left: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.review-divider{
+    width: 380px;
+    border: 1px solid #D3D8DE;
+}
+
+.info-and-review-box{
+    display: flex;
+    flex-direction: row;
+    gap: 27px;
+    margin-top: 30px;
+}
+.info-and-review-box textarea{
+    width: 584px;
+    height: 560px;
+    border-radius: 20px;
+    border: 2px solid #F3F5F7;
+    resize: none;
+    outline: none;
+    padding: 30px;
+    font-family: 'Pretendard-Medium';
+    font-weight: 500;
+    font-size: 20px;
+    color: #2C2F33;
+    box-sizing: border-box;
+}
+
+.info-and-review-box textarea::placeholder{
+    color: #B5BCC3;
+}
+
+.review-two-button img{
+    width: 30px;
+    height: 30px;
+}
+.review-two-button{
+    position: absolute;
+    top: 15px;
+    right: 30px;
+}
+.review-menu{
+    z-index: 20;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    width: 153px;
+    height: 114px;
+    border-radius: 14px;
+    box-shadow: 0px 0px 10px 0px rgba(105, 113, 127, 0.25);
+    align-items: center;
+    justify-content: center;
+    font-family: 'Pretendard- Medium';
+    font-weight: 500;
+    font-size: 18px;
+    background-color: #FFFFFF;
+    gap: 4px;
+    right: -10px;
+    top:35px;
+}
+.review-menu-edit img{
+    width: 26px;
+    height: 26px;
+}
+.review-menu-delete img{
+    width: 26px;
+    height: 26px;
+}
+.review-menu-edit{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    color: #656B70;
+    margin-right: 10px;
+}
+.review-menu-delete{
+    color: #F66A6A;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    margin-right: 10px;
+}

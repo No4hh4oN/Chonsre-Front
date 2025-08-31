@@ -19,7 +19,7 @@ export default function CourseDetail() {
     const mapRef = useRef(null);
     const geocoderRef = useRef(null);
 
-    // ✅ 우선순위에 따라 초기 중심을 결정하는 헬퍼
+    // 우선순위에 따라 초기 중심을 결정하는 헬퍼
     const pickBestCenterInput = () => {
         const s = location.state || {};
         // 1) center: { lat, lng } (CoursePick에서 직접 넘겨줄 수 있음)
@@ -76,14 +76,13 @@ export default function CourseDetail() {
         }
     }, [location.state]);
 
-    // ✅ 주소/좌표 입력을 LatLng로 바꿔주는 비동기 함수
+    // 주소/좌표 입력을 LatLng로 바꿔주는 비동기 함수
     const resolveCenter = (kakao, geocoder, input) =>
         new Promise((resolve) => {
             if (input.type === "coords") {
                 resolve(new kakao.maps.LatLng(input.coords.lat, input.coords.lng));
                 return;
             }
-            // type === "address"
             geocoder.addressSearch(input.query, (result, status) => {
                 if (status === kakao.maps.services.Status.OK && result[0]) {
                     const { x, y } = result[0];
@@ -95,7 +94,7 @@ export default function CourseDetail() {
             });
         });
 
-    // ✅ SDK 로드 + 지도 "초기 중심"을 선택값으로 생성
+    // SDK 로드 + 지도 "초기 중심"을 선택값으로 생성
     useEffect(() => {
         const KAKAO_JS_KEY = import.meta.env.VITE_KAKAO_JS_KEY;
 
@@ -112,7 +111,7 @@ export default function CourseDetail() {
                 const input = pickBestCenterInput();
                 const centerLatLng = await resolveCenter(kakao, geocoder, input);
 
-                // ✅ 처음부터 선택한 좌표로 지도를 생성
+                // 처음부터 선택한 좌표로 지도를 생성
                 mapRef.current = new kakao.maps.Map(container, {
                     center: centerLatLng,
                     level: 7,
@@ -138,7 +137,7 @@ export default function CourseDetail() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location.state]);
 
-    // ✅ 선택값이 바뀌면(다른 지역/주소로 들어온 경우) 지도 중심 즉시 갱신
+    // 선택값이 바뀌면(다른 지역/주소로 들어온 경우) 지도 중심 즉시 갱신
     useEffect(() => {
         if (!mapRef.current || !geocoderRef.current || !window.kakao?.maps) return;
         (async () => {

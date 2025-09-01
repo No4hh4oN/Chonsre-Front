@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import AxiosClient, { setAuthToken } from "../AxiosClient";
 import Header from "../components/header";
 import "./CourseEditor.css";
 import scope from "/icons/scope.png";
+import DragIcon from "/icons/DragIcon.png";
 import HomeIcon from "/icons/home.png";
 import editIcon from "/icons/edit.png";
+import CancelEditIcon from "/icons/CancelEditIcon.png";
+import defaultImg from "/images/defaultImg.png";
 
 import {
   DndContext,
@@ -19,110 +23,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-
-// ===================== Dummy Data =====================
-const dummyCourses = [
-  {
-    name: "A 코스",
-    accommodations: [
-      {
-        name: "한옥마을 황토펜션",
-        image:
-          "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=f9980b3d-7bde-4379-a5ed-4c81252a83a5",
-        desc: "2층 한옥으로 단체 여행객이 머물기에도 좋은 곳...",
-        address: "경기도 수원시 영통구 영통로 154번길 56",
-      },
-    ],
-    days: [
-      {
-        title: "1일차",
-        places: [
-          {
-            name: "양평 두물머리",
-            lat: 37.535984,
-            lng: 127.302801,
-            image:
-              "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=f9c4cb3a-6a3d-42ad-b96d-7eaecfb3b76f",
-            desc: "이른 아침에 피어나는 물안개와 일출, 황포돛배 그리고 400년이 넘은 느티나무가 어우러진 관광 명소.",
-          },
-          {
-            name: "양수리 전통시장",
-            address: "경기도 양평군 양서면 양수리 123",
-            image:
-              "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=f9c4cb3a-6a3d-42ad-b96d-7eaecfb3b76f",
-            desc: "관광지와 인접한 양평의 3대 전통 시장 중 하나. 음식, 가정용품, 의류, 신발과 더불어 노래방 등의 유흥 시설도 존재.",
-          },
-          {
-            name: "한영홈타운",
-            address: "서울특별시 강북구 도봉로 76가길 18",
-            image:
-              "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=f9c4cb3a-6a3d-42ad-b96d-7eaecfb3b76f",
-            desc: "관광지와 인접한 양평의 3대 전통 시장 중 하나. 음식, 가정용품, 의류, 신발과 더불어 노래방 등의 유흥 시설도 존재.",
-          },
-        ],
-      },
-      {
-        title: "2일차",
-        places: [
-          {
-            name: "양평 두물머리",
-            lat: 37.535984,
-            lng: 127.302801,
-            image:
-              "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=f9c4cb3a-6a3d-42ad-b96d-7eaecfb3b76f",
-            desc: "이른 아침에 피어나는 물안개와 일출, 황포돛배 그리고 400년이 넘은 느티나무가 어우러진 관광 명소.",
-          },
-          {
-            name: "양수리 전통시장",
-            address: "경기도 양평군 양서면 양수리 123",
-            image:
-              "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=f9c4cb3a-6a3d-42ad-b96d-7eaecfb3b76f",
-            desc: "관광지와 인접한 양평의 3대 전통 시장 중 하나. 음식, 가정용품, 의류, 신발과 더불어 노래방 등의 유흥 시설도 존재.",
-          },
-        ],
-      },
-      {
-        title: "3일차",
-        places: [
-          {
-            name: "양평 두물머리",
-            lat: 37.535984,
-            lng: 127.302801,
-            image:
-              "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=f9c4cb3a-6a3d-42ad-b96d-7eaecfb3b76f",
-            desc: "이른 아침에 피어나는 물안개와 일출, 황포돛배 그리고 400년이 넘은 느티나무가 어우러진 관광 명소.",
-          },
-          {
-            name: "양수리 전통시장",
-            address: "경기도 양평군 양서면 양수리 123",
-            image:
-              "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=f9c4cb3a-6a3d-42ad-b96d-7eaecfb3b76f",
-            desc: "관광지와 인접한 양평의 3대 전통 시장 중 하나. 음식, 가정용품, 의류, 신발과 더불어 노래방 등의 유흥 시설도 존재.",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    name: "B 코스",
-    accommodations: [
-      {
-        name: "두물머리 한옥스테이",
-        image:
-          "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=f9c4cb3a-6a3d-42ad-b96d-7eaecfb3b76f",
-        desc: "자연과 함께하는 힐링 숙소...",
-        address: "경기도 양평군 양서면 양수로 44",
-      },
-    ],
-    days: [
-      {
-        title: "1일차",
-        places: [{ name: "세미원", address: "경기도 양평군 양서면 양수로 93" }],
-      },
-    ],
-  },
-  { name: "C 코스", accommodations: [], days: [] },
-];
 
 // ===================== Sortable Item (Drag Handle 전용) =====================
 function SortablePlace({ id, children }) {
@@ -140,13 +40,82 @@ function SortablePlace({ id, children }) {
 
 // ===================== Main Component =====================
 export default function CourseEditor() {
-  const [courses, setCourses] = useState(() => dummyCourses.map((c, ci) => ({
-    ...c,
-    days: (c.days || []).map((d, di) => ({
-      ...d,
-      places: (d.places || []).map((p, pi) => ({ ...p, __id: `${ci}-${di}-${pi}-${p.name}` })),
-    })),
-  })));
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const inpStartDate = localStorage.getItem("inpStartDate");
+  const inpEndDate = localStorage.getItem("inpEndDate");
+
+  // Kakao Map 관련 ref들
+  const mapRef = useRef(null);
+  const geocoderRef = useRef(null);
+  const idToLatLngRef = useRef(new Map()); // {id -> kakao.maps.LatLng}
+  const infoRef = useRef(null); // 단일 InfoWindow 재사용
+
+  /* ===================== 데이터 로딩 ===================== */
+  useEffect(() => {
+    const groupId = localStorage.getItem("groupId");
+    const token = localStorage.getItem("accessToken");
+
+    if (!groupId || !token) {
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const fetchCourses = async () => {
+      setLoading(true);
+      try {
+        const res = await AxiosClient.get(`/recommend/group/${groupId}/courses`, {
+          headers: { Authorization: `Bearer ${token}` }, // 전역 인터셉터가 있다면 제거하세요
+        });
+
+        if (cancelled) return;
+
+        const raw = Array.isArray(res.data) ? res.data : [];
+        const formatted = raw.map((course) => ({
+          courseId: course.courseId,
+          courseTitle: course.title || "여행지",
+          name: `${course.courseLabel} 코스`,
+          accommodations: course.accommodation
+            ? [{
+              name: course.accommodation.name,
+              address: course.accommodation.address,
+              desc: course.accommodation.description,
+              image: course.accommodation.imgUrl || defaultImg,
+              lat: course.accommodation.lat,
+              lng: course.accommodation.lng,
+            }]
+            : [],
+          days: (course.days || []).map((dayData) => ({
+            title: `${dayData.day}일차`,
+            dayNumber: dayData.day,
+            places: (dayData.places || []).map((p, idx) => ({
+              name: p.placeName,
+              address: p.address,
+              desc: p.description || "관광지",
+              image: p.imgUrl || defaultImg,
+              lat: p.lat,
+              lng: p.lng,
+              __id: `${course.courseLabel}-${dayData.day}-${idx}-${p.placeName}`,
+            })),
+          })),
+        }));
+
+        setCourses(formatted);
+      } catch (err) {
+        console.error("코스 정보 조회 실패:", err);
+        alert("코스 정보를 불러오는 데 실패했습니다.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchCourses();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const [selectedCourse, setSelectedCourse] = useState(0);
   const [selectedDay, setSelectedDay] = useState(0);
@@ -156,7 +125,39 @@ export default function CourseEditor() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [draftPlaces, setDraftPlaces] = useState([]);
-  const mapRef = useRef(null);
+  const [saving, setSaving] = useState(false);
+
+
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState("");
+  const titleInputRef = useRef(null);
+
+  useEffect(() => {
+    setIsEditingTitle(false);
+  }, [selectedCourse]);
+
+  const startEditTitle = () => {
+    setTitleDraft(course.courseTitle || "");
+    setIsEditingTitle(true);
+    // 다음 페인트 이후 포커스
+    requestAnimationFrame(() => titleInputRef.current?.focus());
+  };
+
+  const commitTitle = () => {
+    setCourses(prev => {
+      const next = structuredClone(prev);
+      const v = (titleDraft || "").trim();
+      if (next[selectedCourse]) next[selectedCourse].courseTitle = v || "여행지";
+      return next;
+    });
+    setIsEditingTitle(false);
+  };
+
+  const cancelTitleEdit = () => {
+    setIsEditingTitle(false);
+    setTitleDraft("");
+  };
+
 
   const openEdit = () => {
     const start = selectedDay;
@@ -164,54 +165,124 @@ export default function CourseEditor() {
     const base = course.days[start]?.places || [];
     setDraftPlaces(base.map((p) => ({ ...p })));
     setIsEditing(true);
-    setTimeout(() => { if (window.kakao?.maps && mapRef.current) mapRef.current.relayout(); }, 180);
+    setTimeout(() => {
+      if (window.kakao?.maps && mapRef.current) mapRef.current.relayout?.();
+    }, 180);
   };
 
   const cancelEdit = () => setIsEditing(false);
 
-  const saveEdit = () => {
-    setCourses((prev) => {
-      const next = structuredClone(prev);
-      if (!next[selectedCourse].days[editDay]) return next;
-      next[selectedCourse].days[editDay].places = draftPlaces.map(p => ({ ...p }));
-      return next;
-    });
-    setIsEditing(false);
+  // [추가] 이미지 URL을 백엔드 규격으로 변환 (기본이미지는 null)
+  const toImgOrNull = (url) => (!url || url === defaultImg ? null : url);
+
+  // [추가] 현재 코스를 백엔드 PUT 규격으로 변환
+  const buildCoursePayload = (c) => ({
+    title: c.courseTitle || c.name || "여행지",
+    days: (c.days || []).map((d) => ({
+      day: d.dayNumber ?? (parseInt((d.title || "1일차"), 10) || 1),
+      places: (d.places || []).map((p) => ({
+        placeName: p.name,
+        description: p.desc || "",
+        address: p.address || "",
+        imgUrl: toImgOrNull(p.image),
+      })),
+    })),
+    accommodation:
+      (c.accommodations && c.accommodations[0])
+        ? {
+          name: c.accommodations[0].name || "",
+          address: c.accommodations[0].address || "",
+          description: c.accommodations[0].desc || "",
+          imgUrl: toImgOrNull(c.accommodations[0].image),
+        }
+        : null,
+  });
+
+  const saveEdit = async () => {
+    try {
+      setSaving(true);
+
+      const token = localStorage.getItem("accessToken");
+      if (token) setAuthToken(token);
+
+      const currentCourse = courses[selectedCourse];
+      if (!currentCourse?.courseId) {
+        alert("courseId가 없어 저장할 수 없습니다. (코스 상세를 먼저 불러오세요)");
+        setSaving(false);
+        return;
+      }
+
+      // 1) 편집 내용을 적용한 스냅샷 생성
+      const nextCourse = structuredClone(currentCourse);
+      if (nextCourse?.days?.[editDay]) {
+        nextCourse.days[editDay].places = draftPlaces.map((p) => ({ ...p }));
+      }
+
+      // 2) 페이로드 구성
+      const payload = buildCoursePayload(nextCourse);
+
+      // 3) PUT
+      await AxiosClient.put(`/recommend/courses/${nextCourse.courseId}`, payload, {
+        headers: { Authorization: `Bearer ${token}` }, // 전역 인터셉터 있으면 제거 가능
+      });
+
+      // 4) 전역 상태 반영
+      setCourses((prev) => {
+        const next = structuredClone(prev);
+        next[selectedCourse] = nextCourse;
+        return next;
+      });
+
+      alert("변경 사항이 저장되었습니다.");
+      setIsEditing(false);
+    } catch (err) {
+      alert("코스 저장에 실패했습니다. 다시 시도해 주세요.");
+    } finally {
+      setSaving(false);
+    }
   };
 
+  // Kakao 스크립트 로더
   useEffect(() => {
     const existing = document.querySelector('script[src*="dapi.kakao.com"]');
-    const load = () => window.kakao.maps.load(loadMap);
+    const onReady = () => window.kakao.maps.load(loadMap);
+
     if (!existing) {
       const script = document.createElement("script");
-      script.src = "//dapi.kakao.com/v2/maps/sdk.js?appkey=a78d10a9ff203286e5fcd09e0f663663&autoload=false&libraries=services";
+      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta?.env?.VITE_KAKAO_MAP_KEY || "a78d10a9ff203286e5fcd09e0f663663"}&autoload=false&libraries=services`;
       script.async = true;
-      script.onload = load;
+      script.onload = onReady;
       document.head.appendChild(script);
     } else {
-      if (typeof window.kakao?.maps?.load === "function") load();
-      else existing.addEventListener("load", load);
+      if (typeof window.kakao?.maps?.load === "function") onReady();
+      else existing.addEventListener("load", onReady, { once: true });
     }
   }, []);
 
+  // 코스/일자 변경 시 지도 갱신
   useEffect(() => {
     if (window.kakao?.maps) window.kakao.maps.load(loadMap);
+    // 좌표 캐시/인포윈도우 초기화(선택 변경 시 다시 계산)
+    idToLatLngRef.current = new Map();
+    if (infoRef.current) {
+      try { infoRef.current.close(); } catch (e) { }
+      infoRef.current = null;
+    }
   }, [selectedCourse, selectedDay, courses]);
 
+  // 지도 구성 (숙소 포함 중심잡기 + 클릭 포커스 대비 캐시)
   const loadMap = () => {
-    const mapContainer = document.getElementById("map");
-    if (!mapContainer || !window.kakao?.maps) return;
+    const container = document.getElementById("map");
+    if (!container || !window.kakao?.maps) return;
 
     const mapOption = { center: new window.kakao.maps.LatLng(37.543743, 127.213535), level: 10 };
-    const map = new window.kakao.maps.Map(mapContainer, mapOption);
+    const map = new window.kakao.maps.Map(container, mapOption);
     mapRef.current = map;
 
-    const geocoder = new window.kakao.maps.services.Geocoder();
+    geocoderRef.current = new window.kakao.maps.services.Geocoder();
     const bounds = new window.kakao.maps.LatLngBounds();
-    const pathCoords = [];
 
-    const createMarker = (position, name, index, isAccom = false) => {
-      // 숙소만 Marker 사용, 일반 장소는 기본 마커 제거(= Marker 만들지 않음)하고 CustomOverlay만 사용
+    const createMarker = (position, name, index, isAccom = false, id) => {
       if (isAccom) {
         const markerImage = new window.kakao.maps.MarkerImage(
           HomeIcon,
@@ -219,54 +290,46 @@ export default function CourseEditor() {
           { offset: new window.kakao.maps.Point(25, 25) }
         );
         const marker = new window.kakao.maps.Marker({ position, map, image: markerImage });
-        const infowindow = new window.kakao.maps.InfoWindow({
+        const iw = new window.kakao.maps.InfoWindow({
           content: `<div style="padding:5px;font-size:14px;">${name}</div>`,
         });
-        window.kakao.maps.event.addListener(marker, "click", () => infowindow.open(map, marker));
+        window.kakao.maps.event.addListener(marker, "click", () => iw.open(map, marker));
       } else {
-        // 기본 마커를 만들지 않고, 숫자 원형 오버레이만 표시
-        const el = document.createElement('div');
-        el.className = 'CourseEditor_Marker';
+        const el = document.createElement("div");
+        el.className = "CourseEditor_Marker";
         el.innerHTML = `<span>${index + 1}</span>`;
-        el.style.cursor = 'pointer';
-
-
+        el.style.cursor = "pointer";
         const overlay = new window.kakao.maps.CustomOverlay({ position, content: el, yAnchor: 0.5 });
         overlay.setMap(map);
 
-
-        // 오버레이 클릭 시 인포윈도우(마커 없이 좌표로 오픈)
-        const infowindow = new window.kakao.maps.InfoWindow({
+        const iw = new window.kakao.maps.InfoWindow({
           content: `<div style="padding:5px;font-size:14px;">${name}</div>`,
           removable: false,
         });
-        el.addEventListener('click', () => {
-          infowindow.setPosition(position);
-          infowindow.open(map);
+        el.addEventListener("click", () => {
+          iw.setPosition(position);
+          iw.open(map);
         });
       }
 
-
+      if (id) idToLatLngRef.current.set(id, position);
       bounds.extend(position);
     };
 
-    (course.accommodations || []).forEach((a) => {
-      if (a.lat && a.lng) createMarker(new window.kakao.maps.LatLng(a.lat, a.lng), a.name, 0, true);
-      else if (a.address) geocoder.addressSearch(a.address, (res, status) => { if (status === window.kakao.maps.services.Status.OK) createMarker(new window.kakao.maps.LatLng(res[0].y, res[0].x), a.name, 0, true); });
-    });
-
-    const placePromises = (selectedPlaces || []).map((p, i) => {
-      if (p.lat && p.lng) {
-        const pos = new window.kakao.maps.LatLng(p.lat, p.lng);
-        createMarker(pos, p.name, i);
+    // 숙소 좌표
+    const accomPromises = (course.accommodations || []).map((a, i) => {
+      const id = `acc-${i}`;
+      if (a.lat != null && a.lng != null) {
+        const pos = new window.kakao.maps.LatLng(a.lat, a.lng);
+        createMarker(pos, a.name, 0, true, id);
         return Promise.resolve(pos);
       }
-      if (p.address) {
+      if (a.address) {
         return new Promise((resolve) => {
-          geocoder.addressSearch(p.address, (res, status) => {
+          geocoderRef.current.addressSearch(a.address, (res, status) => {
             if (status === window.kakao.maps.services.Status.OK) {
               const pos = new window.kakao.maps.LatLng(Number(res[0].y), Number(res[0].x));
-              createMarker(pos, p.name, i);
+              createMarker(pos, a.name, 0, true, id);
               resolve(pos);
             } else resolve(null);
           });
@@ -275,13 +338,41 @@ export default function CourseEditor() {
       return Promise.resolve(null);
     });
 
-    Promise.all(placePromises).then((coords) => {
-      coords.filter(Boolean).forEach((pos) => bounds.extend(pos));
-      if (!bounds.isEmpty()) map.setBounds(bounds);
-      const path = coords.filter(Boolean);
-      if (path.length >= 2) {
+    // 장소 좌표
+    const placePromises = (selectedPlaces || []).map((p, i) => {
+      const id = p.__id;
+      if (p.lat != null && p.lng != null) {
+        const pos = new window.kakao.maps.LatLng(p.lat, p.lng);
+        createMarker(pos, p.name, i, false, id);
+        return Promise.resolve(pos);
+      }
+      if (p.address) {
+        return new Promise((resolve) => {
+          geocoderRef.current.addressSearch(p.address, (res, status) => {
+            if (status === window.kakao.maps.services.Status.OK) {
+              const pos = new window.kakao.maps.LatLng(Number(res[0].y), Number(res[0].x));
+              createMarker(pos, p.name, i, false, id);
+              resolve(pos);
+            } else resolve(null);
+          });
+        });
+      }
+      return Promise.resolve(null);
+    });
+
+    // 모두 완료 후 중심/경로 처리
+    Promise.all([...accomPromises, ...placePromises]).then((coords) => {
+      const all = coords.filter(Boolean);
+      if (all.length > 0) {
+        all.forEach((pos) => bounds.extend(pos));
+        if (!bounds.isEmpty()) map.setBounds(bounds);
+      }
+
+      // 경로선: 숙소 제외 장소만 연결
+      const placeCoords = coords.slice(accomPromises.length).filter(Boolean);
+      if (placeCoords.length >= 2) {
         const polyline = new window.kakao.maps.Polyline({
-          path,
+          path: placeCoords,
           strokeWeight: 4,
           strokeColor: "#3AC581",
           strokeOpacity: 1.0,
@@ -292,14 +383,118 @@ export default function CourseEditor() {
     });
   };
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  // 리스트 클릭 → 지도 포커스
+  const resolveLatLng = ({ lat, lng, address }) =>
+    new Promise((resolve) => {
+      if (lat != null && lng != null) {
+        resolve(new window.kakao.maps.LatLng(lat, lng));
+        return;
+      }
+      if (!address || !geocoderRef.current) return resolve(null);
+      geocoderRef.current.addressSearch(address, (res, status) => {
+        if (status === window.kakao.maps.services.Status.OK) {
+          resolve(new window.kakao.maps.LatLng(Number(res[0].y), Number(res[0].x)));
+        } else resolve(null);
+      });
+    });
+
+  const focusPlace = async ({ id, name, lat, lng, address }) => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    let pos = idToLatLngRef.current.get(id);
+    if (!pos) {
+      pos = await resolveLatLng({ lat, lng, address });
+      if (!pos) return;
+      idToLatLngRef.current.set(id, pos);
+    }
+
+    map.panTo(pos);
+    map.setLevel(4);
+
+    if (!infoRef.current) {
+      infoRef.current = new window.kakao.maps.InfoWindow({ removable: false });
+    }
+    infoRef.current.setContent(`<div style="padding:5px;font-size:14px;">${name}</div>`);
+    infoRef.current.setPosition(pos);
+    infoRef.current.open(map);
+  };
+
+  // 코스 확정
+  // 저장(확정) 진행 중 상태
+  const [finalizing, setFinalizing] = useState(false);
+  const confirmCourse = async () => {
+    if (isEditing) {
+      alert("편집 중에는 코스를 확정할 수 없습니다. 먼저 변경 저장 또는 취소를 해주세요.");
+      return;
+    }
+
+    try {
+      setFinalizing(true);
+
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        alert("로그인이 필요합니다.");
+        setFinalizing(false);
+        return;
+      }
+      setAuthToken(token);
+
+      const currentCourse = courses[selectedCourse];
+      if (!currentCourse?.courseId) {
+        alert("courseId가 없어 확정할 수 없습니다. 코스 정보를 다시 불러와 주세요.");
+        setFinalizing(false);
+        return;
+      }
+
+      // POST /recommend/courses/{courseId}/save
+      const res = await AxiosClient.post(
+        `/recommend/courses/${currentCourse.courseId}/save`,
+        null, // 바디 없음
+        { headers: { Authorization: `Bearer ${token}` } } // 전역 인터셉터 있으면 제거 가능
+      );
+
+      // 응답 예: { savedId, courseId, groupId }
+      const { savedId, courseId, groupId } = res.data || {};
+      // 마이페이지 활용 대비 로컬에 기록(선택)
+      localStorage.setItem(
+        "lastSavedCourse",
+        JSON.stringify({ savedId, courseId, groupId, savedAt: new Date().toISOString() })
+      );
+
+      alert("코스가 확정되어 저장되었습니다!");
+      // TODO: 필요시 마이페이지로 이동
+      // navigate('/Mypage');
+    } catch (err) {
+      console.error("코스 확정(저장) 실패:", err);
+      alert("코스 확정에 실패했습니다. 다시 시도해 주세요.");
+    } finally {
+      setFinalizing(false);
+    }
+  };
+
+
+  // 코스 편집 드래그 기능
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
+
   const onDragEnd = ({ active, over }) => {
     if (!over || active.id === over.id) return;
     const oldIndex = draftPlaces.findIndex((p) => p.__id === active.id);
     const newIndex = draftPlaces.findIndex((p) => p.__id === over.id);
     setDraftPlaces((arr) => arrayMove(arr, oldIndex, newIndex));
   };
-  const placeIds = useMemo(() => (isEditing ? draftPlaces : selectedPlaces).map((p) => p.__id), [isEditing, draftPlaces, selectedPlaces]);
+
+  const placeIds = useMemo(
+    () => (isEditing ? draftPlaces : selectedPlaces).map((p) => p.__id),
+    [isEditing, draftPlaces, selectedPlaces]
+  );
+
+  const removeDraftPlace = (id) => {
+    setDraftPlaces((prev) => prev.filter((p) => p.__id !== id));
+  };
+
 
   return (
     <div className="CourseEditor">
@@ -309,17 +504,43 @@ export default function CourseEditor() {
           <div className="CourseEditor_Header">
             <div className="CourseEditor_Header_title">
               <div className="CourseEditor_Header_courseTitle">
-                <span>경기도 양평</span>
-                <img src={editIcon} alt="편집아이콘" />
+                {isEditingTitle ? (
+                  <input
+                    ref={titleInputRef}
+                    className="CourseEditor_Header_courseTitleInput"
+                    value={titleDraft}
+                    onChange={(e) => setTitleDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") { e.preventDefault(); commitTitle(); }
+                      else if (e.key === "Escape") { e.preventDefault(); cancelTitleEdit(); }
+                    }}
+                    onBlur={commitTitle}
+                    maxLength={40}
+                    placeholder="코스 제목을 입력하세요"
+                  />
+                ) : (
+                  <>
+                    <span>{course.courseTitle}</span>
+                    <img
+                      src={editIcon}
+                      alt="제목 편집"
+                      role="button"
+                      tabIndex={0}
+                      onClick={startEditTitle}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") startEditTitle(); }}
+                      style={{ cursor: "pointer" }}
+                    />
+                  </>
+                )}
               </div>
               <button
                 className="CourseEditor_Header_courseEdit"
                 onClick={() => (isEditing ? cancelEdit() : openEdit())}
               >
-                {isEditing ? "편집 닫기" : "코스 편집 +"}
+                {isEditing ? "편집 취소 -" : "코스 편집 +"}
               </button>
             </div>
-            <div className="CourseEditor_Header_date">25/10/08 ~ 25/10/11</div>
+            <div className="CourseEditor_Header_date">{inpStartDate} ~ {inpEndDate}</div>
           </div>
 
           <div className="CourseEditor_Body">
@@ -327,10 +548,12 @@ export default function CourseEditor() {
               {courses.map((c, index) => (
                 <button
                   key={index}
+                  className={`CourseEditor_CourseBtn ${selectedCourse === index ? "active" : ""}`}
                   onClick={() => {
                     setSelectedCourse(index);
                     setSelectedDay(0);
                   }}
+                  aria-pressed={selectedCourse === index}
                 >
                   {c.name}
                 </button>
@@ -340,7 +563,21 @@ export default function CourseEditor() {
             <div className="CourseEditor_CourseBox">
               <span className="CourseEditor_Accommodations">숙소</span>
               {course.accommodations.map((accom, i) => (
-                <div className="CourseEditor_AccommodationsList" key={i}>
+                <div
+                  className="CourseEditor_AccommodationsList"
+                  key={i}
+                  onClick={() =>
+                    focusPlace({
+                      id: `acc-${i}`,
+                      name: accom.name,
+                      lat: accom.lat,
+                      lng: accom.lng,
+                      address: accom.address,
+                    })
+                  }
+                  style={{ cursor: "pointer" }}
+                >
+
                   <img id="AccommodationImg" src={accom.image} alt={accom.name} />
                   <div className="CourseEditor_Accommodation_desc">
                     <span id="AccommodationName">{accom.name}</span>
@@ -352,9 +589,11 @@ export default function CourseEditor() {
               <div className="CourseEditor_Dates">
                 {course.days.map((day, index) => (
                   <button
-                    className="CourseEditor_Date"
                     key={index}
+                    type="button"
+                    className={`CourseEditor_Date ${selectedDay === index ? "active" : ""}`}
                     onClick={() => setSelectedDay(index)}
+                    aria-pressed={selectedDay === index}
                   >
                     {day.title}
                   </button>
@@ -364,7 +603,20 @@ export default function CourseEditor() {
               {/* 왼쪽: 확정본(읽기 전용) */}
               <div className="CourseEditor_Attractions">
                 {selectedPlaces.map((place) => (
-                  <div className="CourseEditor_Attraction" key={place.__id}>
+                  <div
+                    className="CourseEditor_Attraction"
+                    key={place.__id}
+                    onClick={() =>
+                      focusPlace({
+                        id: place.__id,
+                        name: place.name,
+                        lat: place.lat,
+                        lng: place.lng,
+                        address: place.address,
+                      })
+                    }
+                    style={{ cursor: "pointer" }}
+                  >
                     <img id="AtractionImg" src={place.image} alt="" />
                     <div className="AtractionBox">
                       <span id="AtractionName">{place.name}</span>
@@ -374,12 +626,17 @@ export default function CourseEditor() {
                 ))}
               </div>
 
-              <button className="SaveCourse">코스 확정하기</button>
+              <button
+                className="SaveCourse"
+                onClick={confirmCourse}
+                disabled={isEditing || finalizing}
+                title={isEditing ? "편집 중에는 코스를 확정할 수 없습니다" : "코스 확정하기"}
+              >{finalizing ? "저장 중..." : "코스 확정하기"}</button>
             </div>
           </div>
         </div>
 
-        {/* 지도 */}
+        {/* 카카오맵 */}
         <div className="CourseEditor_MapWrap">
           {isEditing &&
             <div className="CourseEditor_MapMask" />
@@ -395,7 +652,9 @@ export default function CourseEditor() {
               <img className="CourseEditor_EditPane_Scope" src={scope} alt="Scope" />
             </div>
             <div className="CourseEditor_EditActions">
-              <button onClick={cancelEdit}></button>
+              <button className="CancelEdit" onClick={cancelEdit}>
+                <img src={CancelEditIcon} alt="편집바 닫기" />
+              </button>
             </div>
 
             {/* 편집 패널 전용 날짜별 선택 탭 */}
@@ -434,7 +693,7 @@ export default function CourseEditor() {
                             {...attributes}
                             {...listeners}
                           >
-                            ≡
+                            <img src={DragIcon} alt="드래그아이콘" />
                           </button>
                           <div className="CourseEditor_EditPane_Attraction">
                             <img id="AtractionImg" src={place.image} alt="" />
@@ -443,6 +702,17 @@ export default function CourseEditor() {
                               <div id="AtractionDesc">{place.desc}</div>
                             </div>
                           </div>
+                          <button
+                            type="button"
+                            className="RemovePlace"
+                            aria-label={`${place.name} 삭제`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeDraftPlace(place.__id);
+                            }}
+                          >
+                            -
+                          </button>
                         </div>
                       )}
                     </SortablePlace>
@@ -450,7 +720,7 @@ export default function CourseEditor() {
                 </div>
               </SortableContext>
             </DndContext>
-            <button className="SaveCourse" onClick={saveEdit}>
+            <button className="SaveChange" onClick={saveEdit}>
               변경 저장
             </button>
           </aside>

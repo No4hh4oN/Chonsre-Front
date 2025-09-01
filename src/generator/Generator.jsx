@@ -157,7 +157,10 @@ export default function Generator() {
             });
 
             console.log(res.data);
-            navigator('/CourseEditor'); 
+            localStorage.setItem("groupId", res.data.groupId);
+            localStorage.setItem("inpStartDate", startDate);
+            localStorage.setItem("inpEndDate", endDate);
+            navigator('/CourseEditor');
         } catch (err) {
             console.error(err);
             alert("코스 추천 요청에 실패했습니다.");
@@ -250,7 +253,7 @@ export default function Generator() {
                             </div>
                             <div className="GeneratorBox_Temabox">
                                 <div id="farm" className={`GeneratorBox_Tema ${selectedTema === "farm" ? "selected" : ""}`}
-                                onClick={() => handleTemaClick("farm")}>
+                                    onClick={() => handleTemaClick("farm")}>
                                     <div className="GeneratorBox_TemaBlur">
                                         <span className="Tema_title">농촌</span>
                                         <span className="Tema_subtitle">향수 물씬, 우리 농산물이 자라는 곳</span>
@@ -374,6 +377,8 @@ export default function Generator() {
                 contentLabel="여행 지역 추천 모달"
                 className="CustomModal3"
                 overlayClassName="CustomModalOverlay"
+                shouldCloseOnOverlayClick={false}
+                shouldCloseOnEsc={false}
             >
                 <img className="moutainIcon" src={moutainIcon} alt="산아이콘" />
                 <div className="loadingText">

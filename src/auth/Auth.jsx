@@ -31,10 +31,16 @@ export default function Auth() {
                     const res = await AxiosClient.get(`/auth/kakaoLogin?code=${code}`);
                     const accessToken = res.data.accessToken;
                     const userNickname = res.data.nickname;
+                    let profileImg = res.data.profileImg || "";
+
+                    if (profileImg.startsWith("http://")) {
+                        profileImg = profileImg.replace("http://", "https://");
+                    }
 
                     setAuthToken(accessToken);
                     localStorage.setItem("accessToken", accessToken);
-
+                    if (profileImg) localStorage.setItem("profileImg", profileImg);
+                    if (userNickname) localStorage.setItem("nickname", userNickname);
                     if (userNickname) {
                         window.location.href = "/";
                     } else {

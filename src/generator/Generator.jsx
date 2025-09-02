@@ -14,7 +14,10 @@ const bgImages = [
     '/images/BgImg1.png',
     '/images/BgImg2.png',
     '/images/BgImg3.png',
-    '/images/BgImg4.png'
+    '/images/BgImg4.png',
+    '/images/BgImg5.png',
+    '/images/BgImg6.png',
+    '/images/BgImg7.png'
 ];
 
 Modal.setAppElement('#root');

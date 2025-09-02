@@ -17,8 +17,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/Generator" element={<Generator />} />
         <Route path="/CourseEditor" element={<CourseEditor />} />
         <Route path="/Mypage" element={<Mypage />} />
-        
       </Routes>
-      </BrowserRouter>
+    </BrowserRouter>
   </StrictMode >,
 )

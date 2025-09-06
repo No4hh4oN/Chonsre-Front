@@ -513,7 +513,6 @@ export default function CourseDetail() {
   }, [courseInfo, isOther, tourNature, tourFood, tourStay]);
 
   // 지도 마커
-// ✅ 기존 clearMarkers, drawMarkersForDay 통째로 교체
 const clearMarkers = () => {
   markersRef.current.forEach((ov) => ov.setMap(null));
   markersRef.current = [];
@@ -634,7 +633,7 @@ const drawMarkersForDay = async (dayIdx) => {
     return regionImg;
   };
 
-  // ✅ 메인 히어로 이미지 결정: state.heroImage > 지역 대표 > 첫 장소 이미지
+  // 메인 히어로 이미지 결정: state.heroImage > 지역 대표 > 첫 장소 이미지
   // 1) 지역 대표 이미지 (TourAPI) 시도
   useEffect(() => {
     if (!courseInfo.region) return;
@@ -656,90 +655,91 @@ const drawMarkersForDay = async (dayIdx) => {
 
   return (
     <div className="CourseDetail">
-      <Header />
-      {/* ✅ 메인 이미지 교체 */}
-      <img className="detail-main-img" src={heroImg || regionImg} alt="지역대표이미지" />
+        <Header />
+        {/* 메인 이미지 교체 */}
+        <img className="detail-main-img" src={heroImg || regionImg} alt="지역대표이미지" />
 
-      <div className="detail-course-info">
-        <div className="detail-course-info-left">
-          <div className="detail-course-period">{courseInfo.period || "기간 미정"}</div>
-          <div className="detail-course-region">{courseInfo.region || "지역 미정"}</div>
-          <span>
-            {courseInfo.region
-              ? `${courseInfo.region}에 맞춘 ${courseInfo.period || "맞춤"} 촌캉스를 즐겨보세요.`
-              : "원하는 지역과 기간을 선택해 맞춤 코스를 구성해보세요."}
-          </span>
+        <div className="detail-course-info">
+            <div className="detail-course-info-left">
+                <div className="detail-course-period">{courseInfo.period || "기간 미정"}</div>
+                <div className="detail-course-region">{courseInfo.region || "지역 미정"}</div>
+                <span>
+                    {courseInfo.region
+                    ? `${courseInfo.region}에 맞춘 ${courseInfo.period || "맞춤"} 촌캉스를 즐겨보세요.`
+                    : "원하는 지역과 기간을 선택해 맞춤 코스를 구성해보세요."}
+                </span>
+            </div>
+
+            <div className="detail-course-info-rightBox">
+                <div className="detail-course-day-box">
+                    <span>촌캉스 일자</span>
+                    <div className="detail-course-date-selected">
+                        <input type="text" className="detail-day-selected" placeholder="YY / MM / DD"
+                                value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                        <div className="detail-day-dash">-</div>
+                        <input type="text" className="detail-day-selected" placeholder="YY / MM / DD"
+                                value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                    </div>
+                </div>
+                    <button>코스 저장하기</button>
+                </div>
+            </div>
+
+            <hr style={{ border: "none", height: "2px", width: "1200px", backgroundColor: "#E7ECF1", marginTop: "30px" }} />
+
+            <div className="course-info-container">
+            {/* 일차 탭 */}
+            <div className="detail-course-period-1day">
+                {Array.from(
+                { length: Math.max(daysFromPeriod(courseInfo.period), days.length || 0) },
+                (_, i) => (
+                    <span key={i}
+                        className={i + 1 === selectedDay ? "active" : ""}
+                        onClick={() => { setSelectedDay(i + 1); setSelectedIdx(0); }}
+                        style={{ cursor: "pointer" }}>
+                    {i + 1}일차
+                    </span>
+                )
+                )}
+            </div>
+            {/* 일차별 장소 미리보기(상단 가로 카드) */}
+            <div className="day-course-place-container">
+                {(days[selectedDay - 1] || []).map((it, idx) => (
+                <div key={`${it.title}-${idx}`}
+                    className={`place-title-img ${idx === selectedIdx ? "active" : ""}`}
+                    onClick={() => setSelectedIdx(idx)}
+                    style={{ cursor: "pointer" }}>
+                    <img src={imageFor(it)} alt="장소이미지" />
+                    <div className="place-title">
+                        <span>{idx + 1}</span>
+                        <div className="place-title-text">{it.title || "이름 없음"}</div>
+                    </div>
+                </div>
+                ))}
+            </div>
+
+            {/* 하단 상세 패널 */}
+            <div className="course-detail-contents-box">
+                <img src={imageFor(days[selectedDay - 1]?.[selectedIdx])} alt="장소이미지" />
+                <div className="course-detail-contents-text">
+                    <div className="course-detail-contents-top-text">
+                        <div className="course-detail-contents-title">
+                            {days[selectedDay - 1]?.[selectedIdx]?.title || ""}
+                        </div>
+                        <img src={placeIcon} alt="장소아이콘" />
+                        <div className="course-detail-place-address">
+                            {days[selectedDay - 1]?.[selectedIdx]?.address || ""}
+                        </div>
+                    </div>
+                    <div className="course-detail-contents-subcontents">
+                        {/* 설명 비움 */}
+                    </div>
+                </div>
+            </div>
+
+            <span className="course-detail-map-title">위치 정보</span>
+            <div id="map" className="course-detail-map-box" />
         </div>
-
-        <div className="detail-course-info-rightBox">
-          <div className="detail-course-day-box">
-            <span>촌캉스 일자</span>
-            <div className="detail-course-date-selected">
-              <input type="text" className="detail-day-selected" placeholder="YY / MM / DD"
-                     value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-              <div className="detail-day-dash">-</div>
-              <input type="text" className="detail-day-selected" placeholder="YY / MM / DD"
-                     value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-            </div>
-          </div>
-          <button>코스 저장하기</button>
-        </div>
-      </div>
-
-      <hr style={{ border: "none", height: "2px", width: "1200px", backgroundColor: "#E7ECF1", marginTop: "30px" }} />
-
-      {/* 일차 탭 */}
-      <div className="detail-course-period-1day">
-        {Array.from(
-          { length: Math.max(daysFromPeriod(courseInfo.period), days.length || 0) },
-          (_, i) => (
-            <span key={i}
-                  className={i + 1 === selectedDay ? "active" : ""}
-                  onClick={() => { setSelectedDay(i + 1); setSelectedIdx(0); }}
-                  style={{ cursor: "pointer" }}>
-              {i + 1}일차
-            </span>
-          )
-        )}
-      </div>
-
-      {/* 일차별 장소 미리보기(상단 가로 카드) */}
-      <div className="day-course-place-container">
-        {(days[selectedDay - 1] || []).map((it, idx) => (
-          <div key={`${it.title}-${idx}`}
-               className={`place-title-img ${idx === selectedIdx ? "active" : ""}`}
-               onClick={() => setSelectedIdx(idx)}
-               style={{ cursor: "pointer" }}>
-            <img src={imageFor(it)} alt="장소이미지" />
-            <div className="place-title">
-              <span>{idx + 1}</span>
-              <div className="place-title-text">{it.title || "이름 없음"}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* 하단 상세 패널 */}
-      <div className="course-detail-contents-box">
-        <img src={imageFor(days[selectedDay - 1]?.[selectedIdx])} alt="장소이미지" />
-        <div className="course-detail-contents-text">
-          <div className="course-detail-contents-top-text">
-            <div className="course-detail-contents-title">
-              {days[selectedDay - 1]?.[selectedIdx]?.title || ""}
-            </div>
-            <img src={placeIcon} alt="장소아이콘" />
-            <div className="course-detail-place-address">
-              {days[selectedDay - 1]?.[selectedIdx]?.address || ""}
-            </div>
-          </div>
-          <div className="course-detail-contents-subcontents">
-            {/* 설명 비움 */}
-          </div>
-        </div>
-      </div>
-
-      <span className="course-detail-map-title">위치 정보</span>
-      <div id="map" className="course-detail-map-box" />
     </div>
   );
 }

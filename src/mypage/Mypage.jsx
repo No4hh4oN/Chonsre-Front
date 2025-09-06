@@ -26,13 +26,12 @@ export default function Mypage() {
 
     //탈퇴 여부
     const [delStep, setDelStep] = useState('confirm'); // ← 타입 표기 제거
-    
     const handleDelCancel = () => {
-    setIsDelAccountModalOpen(false);
-    setDelStep('confirm'); // 닫힐 때 초기화
+        setIsDelAccountModalOpen(false);
+        setDelStep('confirm'); // 닫힐 때 초기화
     };
     const handleDelConfirm = () => {
-    setDelStep('done'); // 글자 변경
+        setDelStep('done'); // 글자 변경
     };
 
 
@@ -146,7 +145,6 @@ export default function Mypage() {
                     )}
                 </div>
             </div>
-
             <ProfileEditModal 
                 isOpen={isProfileModalOpen} 
                 onClose={() => setIsProfileModalOpen(false)} 

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import AxiosClient, { setAuthToken } from "../AxiosClient";
+import Modal from 'react-modal';
 import Header from "../components/header";
 import "./CourseEditor.css";
 import scope from "/icons/scope.png";
@@ -7,6 +9,7 @@ import DragIcon from "/icons/DragIcon.png";
 import HomeIcon from "/icons/home.png";
 import editIcon from "/icons/edit.png";
 import CancelEditIcon from "/icons/CancelEditIcon.png";
+import closeModal from "/icons/CloseModal.png";
 import defaultImg from "/images/defaultImg.png";
 
 import {
@@ -24,7 +27,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-// ===================== Sortable Item (Drag Handle 전용) =====================
+// Sortable Item (Drag Handle 전용)
 function SortablePlace({ id, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id });
@@ -38,8 +41,9 @@ function SortablePlace({ id, children }) {
   return children({ setNodeRef, style, attributes, listeners, isDragging });
 }
 
-// ===================== Main Component =====================
+Modal.setAppElement('#root');
 export default function CourseEditor() {
+  const navigator = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const inpStartDate = localStorage.getItem("inpStartDate");
@@ -51,7 +55,6 @@ export default function CourseEditor() {
   const idToLatLngRef = useRef(new Map()); // {id -> kakao.maps.LatLng}
   const infoRef = useRef(null); // 단일 InfoWindow 재사용
 
-  /* ===================== 데이터 로딩 ===================== */
   useEffect(() => {
     const groupId = localStorage.getItem("groupId");
     const token = localStorage.getItem("accessToken");
@@ -67,7 +70,7 @@ export default function CourseEditor() {
       setLoading(true);
       try {
         const res = await AxiosClient.get(`/recommend/group/${groupId}/courses`, {
-          headers: { Authorization: `Bearer ${token}` }, // 전역 인터셉터가 있다면 제거하세요
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (cancelled) return;
@@ -139,7 +142,6 @@ export default function CourseEditor() {
   const startEditTitle = () => {
     setTitleDraft(course.courseTitle || "");
     setIsEditingTitle(true);
-    // 다음 페인트 이후 포커스
     requestAnimationFrame(() => titleInputRef.current?.focus());
   };
 
@@ -172,10 +174,8 @@ export default function CourseEditor() {
 
   const cancelEdit = () => setIsEditing(false);
 
-  // [추가] 이미지 URL을 백엔드 규격으로 변환 (기본이미지는 null)
   const toImgOrNull = (url) => (!url || url === defaultImg ? null : url);
 
-  // [추가] 현재 코스를 백엔드 PUT 규격으로 변환
   const buildCoursePayload = (c) => ({
     title: c.courseTitle || c.name || "여행지",
     days: (c.days || []).map((d) => ({
@@ -212,21 +212,21 @@ export default function CourseEditor() {
         return;
       }
 
-      // 1) 편집 내용을 적용한 스냅샷 생성
+      // 편집 내용을 적용한 스냅샷 생성
       const nextCourse = structuredClone(currentCourse);
       if (nextCourse?.days?.[editDay]) {
         nextCourse.days[editDay].places = draftPlaces.map((p) => ({ ...p }));
       }
 
-      // 2) 페이로드 구성
+      // 페이로드 구성
       const payload = buildCoursePayload(nextCourse);
 
-      // 3) PUT
+      // PUT
       await AxiosClient.put(`/recommend/courses/${nextCourse.courseId}`, payload, {
-        headers: { Authorization: `Bearer ${token}` }, // 전역 인터셉터 있으면 제거 가능
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      // 4) 전역 상태 반영
+      // 전역 상태 반영
       setCourses((prev) => {
         const next = structuredClone(prev);
         next[selectedCourse] = nextCourse;
@@ -383,7 +383,7 @@ export default function CourseEditor() {
     });
   };
 
-  // 리스트 클릭 → 지도 포커스
+  // 지도 포커스
   const resolveLatLng = ({ lat, lng, address }) =>
     new Promise((resolve) => {
       if (lat != null && lng != null) {
@@ -447,24 +447,21 @@ export default function CourseEditor() {
         return;
       }
 
-      // POST /recommend/courses/{courseId}/save
       const res = await AxiosClient.post(
         `/recommend/courses/${currentCourse.courseId}/save`,
-        null, // 바디 없음
-        { headers: { Authorization: `Bearer ${token}` } } // 전역 인터셉터 있으면 제거 가능
+        null,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       // 응답 예: { savedId, courseId, groupId }
       const { savedId, courseId, groupId } = res.data || {};
-      // 마이페이지 활용 대비 로컬에 기록(선택)
+
       localStorage.setItem(
         "lastSavedCourse",
         JSON.stringify({ savedId, courseId, groupId, savedAt: new Date().toISOString() })
       );
 
-      alert("코스가 확정되어 저장되었습니다!");
-      // TODO: 필요시 마이페이지로 이동
-      // navigate('/Mypage');
+      navigator('/Success');
     } catch (err) {
       console.error("코스 확정(저장) 실패:", err);
       alert("코스 확정에 실패했습니다. 다시 시도해 주세요.");
@@ -493,6 +490,78 @@ export default function CourseEditor() {
 
   const removeDraftPlace = (id) => {
     setDraftPlaces((prev) => prev.filter((p) => p.__id !== id));
+  };
+
+
+  // 코스 검색 기능
+  // 검색 모달 상태
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [searchCounty, setSearchCounty] = useState("");
+  const [searchLimit, setSearchLimit] = useState(100);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+
+  const addPlaceFromSearch = (item) => {
+    const __id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${item.placeName}`;
+    const next = {
+      __id,
+      name: item.placeName,
+      desc: item.description || "관광지",
+      address: item.address || "",
+      image: item.imgUrl || defaultImg,
+      lat: undefined,
+      lng: undefined,
+    };
+    setDraftPlaces(prev => {
+      const exists = prev.some(p => p.name === next.name && p.address === next.address);
+      return exists ? prev : [...prev, next];
+    });
+  };
+
+  const doSearch = async (_keyword, _county, _limit) => {
+    const keyword = (_keyword ?? searchKeyword).trim();
+    const county = (_county ?? searchCounty).trim();
+    const limit = Number.isFinite(_limit) ? _limit : searchLimit;
+
+    console.log('[doSearch] start', { keyword, county, limit });
+
+
+    if (!keyword) {
+      setSearchError("검색어를 입력해 주세요.");
+      setSearchResults([]);
+      setSearchOpen(true);
+      return;
+    }
+    try {
+      setSearchOpen(true);
+      setSearchLoading(true);
+      setSearchError("");
+
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        setSearchLoading(false);
+        setSearchError("로그인이 필요합니다.");
+        setSearchOpen(true);
+        return;
+      }
+
+      const res = await AxiosClient.get("/recommend/places/search", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { keyword, ...(county ? { county } : {}), ...(limit ? { limit } : {}) },
+      });
+
+      const list = Array.isArray(res?.data?.results) ? res.data.results : [];
+      setSearchResults(list); // 결과 모달 열기
+    } catch (e) {
+      console.error(e);
+      setSearchError("검색 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      setSearchResults([]);
+      setSearchOpen(true);
+    } finally {
+      setSearchLoading(false);
+    }
   };
 
 
@@ -648,8 +717,27 @@ export default function CourseEditor() {
         {isEditing && (
           <aside className="CourseEditor_EditPane">
             <div className="CourseEditor_EditPane_Header">
-              <input className="CourseEditor_EditPane_SearchBar" type="text" placeholder="가고 싶은 명소를 검색해 볼까요?" />
-              <img className="CourseEditor_EditPane_Scope" src={scope} alt="Scope" />
+              <input
+                className="CourseEditor_EditPane_SearchBar"
+                type="text"
+                placeholder="가고 싶은 명소를 검색해 볼까요?"
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { e.preventDefault(); doSearch(searchKeyword, searchCounty, searchLimit); }
+                  if (e.key === "Escape") setSearchOpen(false);
+                }}
+              />
+              <img
+                className="CourseEditor_EditPane_Scope"
+                src={scope}
+                alt="검색"
+                role="button"
+                tabIndex={0}
+                onClick={() => doSearch(searchKeyword, searchCounty, searchLimit)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") doSearch(searchKeyword, searchCounty, searchLimit); }}
+                style={{ cursor: "pointer" }}
+              />
             </div>
             <div className="CourseEditor_EditActions">
               <button className="CancelEdit" onClick={cancelEdit}>
@@ -726,6 +814,65 @@ export default function CourseEditor() {
           </aside>
         )}
       </div>
+      <Modal
+        isOpen={searchOpen}
+        onRequestClose={() => setSearchOpen(false)}
+        contentLabel="관광지 검색 결과"
+        className="CustomModal4"
+        overlayClassName="CustomModal4Overlay"
+      >
+        <div className="SearchModal_Header">
+          <div className="SearchModal_Header_Label">검색 결과 {!searchLoading && !searchError && (
+            <span id="SearchModal_Header_Value">{searchResults.length > 0 ? `${searchResults.length}건` : ""}</span>
+          )}</div>
+          <img className="closeModalIcon" src={closeModal} alt="close" onClick={() => setSearchOpen(false)} />
+        </div>
+          {searchLoading && <span>검색 중...</span>}
+          {!searchLoading && searchError && <span>{searchError}</span>}
+          {!searchLoading && !searchError && (
+            <div className="SearchModal_Results">
+              {searchResults.length > 0 ?
+                <>
+                  {searchResults.map((r, idx) => (
+                    <div className="SearchedTourlist" key={`${r.placeName}-${idx}`}>
+                      <div className="SearchedTourInfo">
+                        <img
+                          className="tourlistImg"
+                          src={r.imgUrl || defaultImg}
+                          alt={r.placeName}
+                        />
+                        <div className="tourlistText">
+                          <div id="placeName">{r.placeName}</div>
+                          <div id="description">{r.description || "관광지"}</div>
+                        </div>
+                      </div>
+
+                        {/* <button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => focusPlace({
+                    id: `${r.placeName}-${idx}`,
+                    name: r.placeName,
+                    lat: r.lat, lng: r.lng, address: r.address
+                  })}
+                >
+                  미리보기
+                </button> */}
+                      <button className="addTourlist" onClick={() => addPlaceFromSearch(r)}>
+                        +
+                      </button>
+                    </div>
+                  ))}
+                </>
+                :
+                "결과가 없습니다."}
+            </div>
+          )}
+
+
+      </Modal>
+
     </div>
+
   );
 }

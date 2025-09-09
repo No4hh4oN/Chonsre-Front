@@ -183,11 +183,6 @@ function extractRegionFromTour(addr1 = "") {
 /**
  * TourAPI → 지역별 코스 빌드(체험 없음)
  * 하루 순서: 관광지1 → 음식점 → 관광지2 → (숙소, 마지막 날 제외)
- * 표시 조건:
- * - 당일치기 : 관광지≥2, 음식점≥1
- * - 1박2일   : 관광지≥4, 음식점≥2, 숙소≥1
- * - 2박3일   : 관광지≥6, 음식점≥3, 숙소≥2
- * - 3박4일   : 관광지≥8, 음식점≥4, 숙소≥3
  */
 function makePlansByRegion_TOUR({ natureItems = [], foodItems = [], stayItems = [] }) {
   const grouped = {};
@@ -212,7 +207,6 @@ function makePlansByRegion_TOUR({ natureItems = [], foodItems = [], stayItems = 
     const N = cats.관광지.length, F = cats.음식점.length, S = cats.숙소.length;
     plans[region] = {};
 
-    // 당일치기: 관광지 2 + 음식점 1
     if (N >= 2 && F >= 1) {
       plans[region].daytrip = {
         관광지1: cats.관광지[0],
@@ -220,34 +214,28 @@ function makePlansByRegion_TOUR({ natureItems = [], foodItems = [], stayItems = 
         관광지2: cats.관광지[1],
       };
     }
-
-    // 1박2일: 관광지 4 + 음식점 2 + 숙소 1
     if (N >= 4 && F >= 2 && S >= 1) {
       plans[region].oneday = [
         { day: 1, 관광지1: cats.관광지[0], 음식점: cats.음식점[0], 관광지2: cats.관광지[1], 숙소: cats.숙소[0] },
         { day: 2, 관광지1: cats.관광지[2], 음식점: cats.음식점[1], 관광지2: cats.관광지[3] },
       ];
     }
-
-    // 2박3일: 관광지 6 + 음식점 3 + 숙소 2
     if (N >= 6 && F >= 3 && S >= 2) {
       plans[region].twoday = [0,1,2].map((d) => ({
         day: d + 1,
         관광지1: cats.관광지[2*d],
         음식점:  cats.음식점[d],
         관광지2: cats.관광지[2*d + 1],
-        ...(d < 2 ? { 숙소: cats.숙소[d] } : {}), // 마지막 날 숙소 제외
+        ...(d < 2 ? { 숙소: cats.숙소[d] } : {}),
       }));
     }
-
-    // 3박4일: 관광지 8 + 음식점 4 + 숙소 3
     if (N >= 8 && F >= 4 && S >= 3) {
       plans[region].threeday = [0,1,2,3].map((d) => ({
         day: d + 1,
         관광지1: cats.관광지[2*d],
         음식점:  cats.음식점[d],
         관광지2: cats.관광지[2*d + 1],
-        ...(d < 3 ? { 숙소: cats.숙소[d] } : {}), // 마지막 날 숙소 제외
+        ...(d < 3 ? { 숙소: cats.숙소[d] } : {}),
       }));
     }
   });
@@ -261,6 +249,87 @@ function pickRegionImage(region, nList = [], fList = [], sList = []) {
     (it) => extractRegionFromTour(it.addr1) === region && it.firstimage
   )?.firstimage;
   return finder(nList) || finder(fList) || finder(sList) || null;
+}
+
+/* ================== 농촌(스마트주) ================== */
+/** 농촌 원본 로드 — 반드시 "농촌 + 기간"일 때만 호출 */
+async function fetchRuralJeonnam() {
+  const r = await axios.get("https://smartzoo.shop/api/jeonnam/json");
+  return Array.isArray(r.data) ? r.data : [];
+}
+/** "전라남도 {시군}" 형태로 지역 문자열 생성 */
+function regionFromRural(row) {
+  const sigun = (row?.["시군"] || "").trim();
+  return sigun ? `전라남도 ${sigun}` : "";
+}
+/** TourAPI 리스트를 지역별로 그룹 */
+function groupTourByRegion(list = []) {
+  const grouped = {};
+  for (const it of list) {
+    const region = extractRegionFromTour(it.addr1 || "");
+    if (!region.startsWith("전라남도")) continue;
+    (grouped[region] ??= []).push(it);
+  }
+  return grouped;
+}
+/**
+ * 농촌 rows(체험만) + TourAPI(음식점,숙소) → 지역별 코스 빌드
+ * 규칙: 하루에 [체험1, 음식점1, 숙박1] 정확히 3개.
+ * D일 일정이면 체험 D개 필요. 음식/숙소는 1개 이상 있으면 순환 사용.
+ */
+function makePlansByRegion_RURAL(rows = [], foodByRegion = {}, stayByRegion = {}) {
+  const onlyRural = rows.filter((r) => r?.["구분"] === "농촌" && regionFromRural(r));
+  const grouped = {};
+  for (const r of onlyRural) {
+    const region = regionFromRural(r);
+    (grouped[region] ??= []).push(r);
+  }
+
+  // 체험 정렬(안정적)
+  Object.values(grouped).forEach(arr =>
+    arr.sort((a, b) => (a["장소명"]||"").localeCompare(b["장소명"]||""))
+  );
+
+  const plans = {};
+  const periods = {
+    daytrip: 1,
+    oneday: 2,
+    twoday: 3,
+    threeday: 4,
+  };
+
+  Object.entries(grouped).forEach(([region, experiences]) => {
+    const foods = foodByRegion[region] || [];
+    const stays = stayByRegion[region] || [];
+
+    // 표시용 아이템 변환기
+    const toExp = (row) => ({ title: row?.["장소명"] || "", address: row?.["주소"] || "", category: "체험" });
+    const toFood = (it) => ({ title: it?.title || "", address: it?.addr1 || "", category: "음식점" });
+    const toStay = (it) => ({ title: it?.title || "", address: it?.addr1 || "", category: "숙소" });
+
+    plans[region] = {};
+
+    for (const [key, daysNeeded] of Object.entries(periods)) {
+      if (experiences.length >= daysNeeded && foods.length >= 1 && stays.length >= 1) {
+        if (daysNeeded === 1) {
+          plans[region].daytrip = {
+            체험: toExp(experiences[0]),
+            음식점: toFood(foods[0]),
+            숙소: toStay(stays[0]),
+          };
+        } else {
+          plans[region][key] = Array.from({ length: daysNeeded }, (_, d) => ({
+            day: d + 1,
+            체험: toExp(experiences[d]),
+            음식점: toFood(foods[d % foods.length]),
+            숙소: toStay(stays[d % stays.length]),
+          }));
+        }
+      }
+    }
+  });
+
+  return plans;
 }
 
 /* ================== 화면 컴포넌트 ================== */
@@ -285,6 +354,7 @@ export default function CoursePick() {
   const [loading, setLoading] = useState(false);
   const [cachedRows, setCachedRows] = useState(null);           // 어촌 캐시
   const [tourCache, setTourCache] = useState({ n: null, f: null, s: null }); // 그외/대표이미지 캐시
+  const [ruralRows, setRuralRows] = useState(null);             // 농촌 캐시
 
   const PERIOD_KEY_MAP = {
     "당일치기": "daytrip",
@@ -307,8 +377,7 @@ export default function CoursePick() {
       const periodKey = PERIOD_KEY_MAP[selectedPeriod];
       const periodTag = selectedPeriod.replace(/\s/g, ""); // "2박 3일" → "2박3일"
 
-      // ================= 공통: 지역 이미지를 위해 TourAPI 캐시 보장 =================
-      // (어촌/그외 모두 카드에 대표 이미지가 필요하므로 한 번 로드해두면 재사용)
+      // TourAPI(카드 이미지/음식/숙소용)는 공통 캐시
       let { n, f, s } = tourCache;
       if (!n || !f || !s) {
         const [nRaw, fRaw, sRaw] = await Promise.all([
@@ -318,6 +387,54 @@ export default function CoursePick() {
         ]);
         n = nRaw; f = fRaw; s = sRaw;
         setTourCache({ n, f, s });
+      }
+      // 지역별 음식/숙소 그룹(농촌 코스 조합용)
+      const foodByRegion = groupTourByRegion(f);
+      const stayByRegion = groupTourByRegion(s);
+
+      // ================= 농촌 =================
+      if (selectedType === "농촌") {
+        // ⚠️ 이 시점에만 농촌 JSON 호출
+        let rows = ruralRows;
+        if (!rows) {
+          rows = await fetchRuralJeonnam();
+          setRuralRows(rows);
+        }
+        const plans = makePlansByRegion_RURAL(rows, foodByRegion, stayByRegion);
+
+        const list = Object.entries(plans)
+          .filter(([, planSet]) => Boolean(planSet[periodKey]))
+          .map(([region, planSet], idx) => {
+            const town = (region.split(/\s+/)[1]) || region;
+
+            // 첫째 날 기준 요약(체험 우선)
+            let rawName = "", rawAddress = "";
+            if (periodKey === "daytrip") {
+              rawName = planSet.daytrip?.체험?.title || "";
+              rawAddress = planSet.daytrip?.체험?.address || "";
+            } else if (Array.isArray(planSet[periodKey])) {
+              const d1 = planSet[periodKey][0]?.체험;
+              rawName = d1?.title || "";
+              rawAddress = d1?.address || "";
+            }
+
+            // 지역 대표 이미지 (TourAPI)
+            const anyImg = pickRegionImage(region, n, f, s) || regionImg;
+
+            return {
+              id: `rural-${periodKey}-${region}-${idx}`,
+              image: anyImg,
+              period: periodTag,
+              region: `${region} 코스`,
+              town,
+              rawAddress,
+              rawName,
+            };
+          });
+
+        setCourses(list);
+        setCurrentPage(1);
+        return;
       }
 
       // ================= 어촌 =================
@@ -354,7 +471,7 @@ export default function CoursePick() {
               rawAddress = d1?.["주소"] || d1?.["소재지주소"] || d1?.["소재지도로명주소"] || "";
             }
 
-            // ✅ 지역 대표 이미지 선택 (TourAPI에서 매칭, 없으면 기본)
+            // 지역 대표 이미지 (TourAPI)
             const anyImg = pickRegionImage(region, n, f, s) || regionImg;
 
             return {
@@ -402,7 +519,7 @@ export default function CoursePick() {
               rawAddress = d1?.addr1 || "";
             }
 
-            // ✅ 지역 대표 이미지 선택 (TourAPI에서 매칭, 없으면 기본)
+            // 지역 대표 이미지 (TourAPI)
             const anyImg = pickRegionImage(region, n, f, s) || regionImg;
 
             return {
@@ -421,7 +538,7 @@ export default function CoursePick() {
         return;
       }
 
-      // 그 외 타입(농촌 등)은 현재 미구현 → 빈 목록
+      // 그 외 타입(미구현)은 빈 목록
       setCourses([]);
       setCurrentPage(1);
     } catch (error) {

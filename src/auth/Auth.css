@@ -68,3 +68,69 @@
     width: 36px;
     height: 36px;
 }
+
+.NicknameBox {
+    margin-top: 325px;
+    position: relative;
+    width: 1200px;
+    min-height: calc(100% - 233px);
+    padding-bottom: 139px;
+    overflow: hidden;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.NicknameBox_Intro {
+    font-family: 'Pretendard-SemiBold';
+    font-size: 32px;
+    color: #2C2F33;
+}
+
+.NicknameBox_Input {
+    margin-top: 44px;
+    width: 425px;
+    height: 76px;
+    border-radius: 20px;
+    background-color: #F3F5F7;
+    outline: none;
+    border: none;
+    text-align: center;
+    
+    font-family: 'Pretendard-SemiBold';
+    font-size: 24px;
+    color: #2C2F33;
+}
+
+.NicknameBox_Input::placeholder {
+    color: #B5BCC3;
+}
+
+.NicknameButton {
+    margin-top: 130px;
+    width: 500px;
+    height: 86px;
+    border-radius: 20px;
+    background-color: #D3D8DE;
+    outline: none;
+    border: none;
+    font-family: 'Pretendard-SemiBold';
+    font-size: 24px;
+    color: #FFFFFF;
+    cursor: not-allowed;
+    transition: background-color 0.3s ease;
+}
+
+.NicknameButton.fill {
+    margin-top: 130px;
+    width: 500px;
+    height: 86px;
+    border-radius: 20px;
+    background-color: #3AC581;
+    outline: none;
+    border: none;
+    font-family: 'Pretendard-SemiBold';
+    font-size: 24px;
+    color: #FFFFFF;
+}

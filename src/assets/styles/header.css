@@ -8,6 +8,7 @@
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
+    z-index: 5;
 }
 
 .Header_Box {
@@ -52,11 +53,19 @@
 .profileImg1 {
     width: 44px;
     height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .userNickname {
+    font-family: 'Pretendard-SemiBold';
+    font-size: 20px;
+    color: #2C2F33;
+}
+
+.userEmail {
     font-family: 'Pretendard-Medium';
-    font-size: 18px;
+    font-size: 16px;
     color: #656B70;
 }
 
@@ -125,6 +134,8 @@
 .profileImg2 {
     width: 84px;
     height: 84px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .userNickname_Email {

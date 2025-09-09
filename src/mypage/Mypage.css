@@ -23,6 +23,7 @@
 .mypage-profile-img{
     width: 132px;
     height: 132px;
+    border-radius: 50%;
     margin-bottom: 15px;
 }
 

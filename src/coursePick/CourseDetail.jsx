@@ -242,11 +242,80 @@ function pickRegionImage(region, nList = [], fList = [], sList = []) {
   return finder(nList) || finder(fList) || finder(sList) || null;
 }
 
+/* ================== 농촌(스마트주) 유틸 ================== */
+async function fetchRuralJeonnam() {
+  const r = await axios.get("https://smartzoo.shop/api/jeonnam/json");
+  return Array.isArray(r.data) ? r.data : [];
+}
+function regionFromRural(row) {
+  const sigun = (row?.["시군"] || "").trim();
+  return sigun ? `전라남도 ${sigun}` : "";
+}
+function groupTourByRegion(list = []) {
+  const grouped = {};
+  for (const it of list) {
+    const region = extractRegionFromTour(it.addr1 || "");
+    if (!region.startsWith("전라남도")) continue;
+    (grouped[region] ??= []).push(it);
+  }
+  return grouped;
+}
+/** 농촌 rows(체험만) + TourAPI(음식/숙소) → 지역별 코스.
+ * 규칙: 하루에 [체험1, 음식점1, 숙박1] 정확히 3개. */
+function makePlansByRegion_RURAL(rows = [], foodByRegion = {}, stayByRegion = {}) {
+  const onlyRural = rows.filter((r) => r?.["구분"] === "농촌" && regionFromRural(r));
+  const grouped = {};
+  for (const r of onlyRural) {
+    const region = regionFromRural(r);
+    (grouped[region] ??= []).push(r);
+  }
+  Object.values(grouped).forEach(arr =>
+    arr.sort((a, b) => (a["장소명"]||"").localeCompare(b["장소명"]||""))
+  );
+
+  const plans = {};
+  const periods = { daytrip: 1, oneday: 2, twoday: 3, threeday: 4 };
+
+  Object.entries(grouped).forEach(([region, experiences]) => {
+    const foods = foodByRegion[region] || [];
+    const stays = stayByRegion[region] || [];
+    const toExp = (row) => ({
+      title: row?.["체험프로그램"] || row?.["장소명"] || "",
+      address: row?.["주소"] || "",
+      category: "체험",
+    });
+    const toFood = (it)  => ({ title: it?.title || "", address: it?.addr1 || "", category: "음식점" });
+    const toStay = (it)  => ({ title: it?.title || "", address: it?.addr1 || "", category: "숙소" });
+
+    plans[region] = {};
+    for (const [key, daysNeeded] of Object.entries(periods)) {
+      if (experiences.length >= daysNeeded && foods.length >= 1 && stays.length >= 1) {
+        if (daysNeeded === 1) {
+          plans[region].daytrip = {
+            체험: toExp(experiences[0]),
+            음식점: toFood(foods[0]),
+            숙소: toStay(stays[0]),
+          };
+        } else {
+          plans[region][key] = Array.from({ length: daysNeeded }, (_, d) => ({
+            day: d + 1,
+            체험: toExp(experiences[d]),
+            음식점: toFood(foods[d % foods.length]),
+            숙소: toStay(stays[d % stays.length]),
+          })); 
+        }
+      }
+    }
+  });
+  return plans;
+}
+
 /* ================== 상세 페이지 ================== */
 export default function CourseDetail() {
   const location = useLocation();
   const { id } = useParams();           // /CourseDetail/:id
   const isOther = /^other-/.test(id || "");
+  const isRural = /^rural-/.test(id || "");
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -271,9 +340,11 @@ export default function CourseDetail() {
   const geocoderRef = useRef(null);
   const markersRef = useRef([]);
   const cachedRowsRef = useRef(null); // 어촌 원천 캐시
-  const placesRef = useRef(null); 
+  const placesRef = useRef(null);
+  const ruralRowsRef = useRef(null);  // 농촌 원천 캐시
 
-  
+  // === 저장 진행 상태 ===
+  const [saving, setSaving] = useState(false);
 
   // 일수 계산
   function daysFromPeriod(period = "") {
@@ -287,6 +358,26 @@ export default function CourseDetail() {
     return 1;
   }
 
+  // === 날짜 정규화(YYYY-MM-DD) ===
+  function normalizeDateInput(s) {
+    if (!s) return "";
+    const digits = String(s).replace(/[^\d]/g, "");
+    let y, m, d;
+
+    if (digits.length === 8) {
+      y = digits.slice(0, 4); m = digits.slice(4, 6); d = digits.slice(6, 8);
+    } else if (digits.length === 6) {
+      y = "20" + digits.slice(0, 2); m = digits.slice(2, 4); d = digits.slice(4, 6);
+    } else {
+      const m2 = String(s).match(/(\d{2,4}).*?(\d{1,2}).*?(\d{1,2})/);
+      if (!m2) return "";
+      y = m2[1].length === 2 ? "20" + m2[1] : m2[1];
+      m = m2[2].padStart(2, "0");
+      d = m2[3].padStart(2, "0");
+    }
+    return `${y}-${m}-${d}`;
+  }
+
   // 라우터 state/세션 → courseInfo & heroImg 복원
   useEffect(() => {
     const s = location.state;
@@ -296,7 +387,6 @@ export default function CourseDetail() {
         period: s.period || "",
       };
       setCourseInfo(next);
-      // 카드에서 이미지(state.heroImage)로 넘어온 경우 우선 사용
       if (s.heroImage) setHeroImg(s.heroImage);
       sessionStorage.setItem("lastCourse", JSON.stringify({ ...next, heroImage: s?.heroImage || "" }));
       return;
@@ -394,13 +484,58 @@ export default function CourseDetail() {
     }
   }, [courseInfo.region]);
 
-  // 일정 불러오기: 어촌 또는 그외 분기
+  // 일정 불러오기: 농촌 / 그외 / 어촌 분기
   useEffect(() => {
     const load = async () => {
       const { region, period } = courseInfo;
       if (!region || !period) return;
 
       const key = PERIOD_KEY_MAP[period] || PERIOD_KEY_MAP[period.replace(/\s/g, "")];
+
+      // ===== 농촌 (스마트주 JSON + TourAPI 음식/숙소) =====
+      if (isRural) {
+        // TourAPI 보장
+        let n = tourNature, f = tourFood, s = tourStay;
+        if (!n?.length || !f?.length || !s?.length) {
+          try {
+            const [n2, f2, s2] = await Promise.all([
+              fetchNatureSights({}),
+              fetchFoodPlaces({}),
+              fetchAccommodations({}),
+            ]);
+            n = n2; f = f2; s = s2;
+            setTourNature(n2); setTourFood(f2); setTourStay(s2);
+            setImgIndex(buildImageIndex(n2, f2, s2));
+          } catch (e) {
+            console.error("TourAPI 재로드 실패:", e);
+          }
+        }
+        const foodByRegion = groupTourByRegion(f);
+        const stayByRegion = groupTourByRegion(s);
+
+        // 농촌 JSON 캐시
+        let rrows = ruralRowsRef.current;
+        if (!rrows) {
+          rrows = await fetchRuralJeonnam();
+          ruralRowsRef.current = rrows;
+        }
+
+        const plans = makePlansByRegion_RURAL(rrows, foodByRegion, stayByRegion);
+        const planSet = plans[region];
+        const selected = planSet?.[key];
+
+        let newDays = [];
+        if (key === "daytrip" && selected) {
+          newDays = [[selected.체험, selected.음식점, selected.숙소]];
+        } else if (Array.isArray(selected)) {
+          newDays = selected.map((d) => [d.체험, d.음식점, d.숙소]);
+        }
+
+        setDays(newDays);
+        setSelectedDay(1);
+        setSelectedIdx(0);
+        return;
+      }
 
       // ===== 그외 (TourAPI 기반, 하루 2관광지) =====
       if (isOther) {
@@ -510,112 +645,106 @@ export default function CourseDetail() {
     };
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [courseInfo, isOther, tourNature, tourFood, tourStay]);
+  }, [courseInfo, isOther, isRural, tourNature, tourFood, tourStay]);
 
   // 지도 마커
-const clearMarkers = () => {
-  markersRef.current.forEach((ov) => ov.setMap(null));
-  markersRef.current = [];
-};
+  const clearMarkers = () => {
+    markersRef.current.forEach((ov) => ov.setMap(null));
+    markersRef.current = [];
+  };
 
-// 픽셀 오프셋(좌표가 겹칠 때 겹치지 않게 흩뿌리기)
-const PIX_OFFSETS = [
-  [0, 0], [14, 0], [-14, 0], [0, 14], [0, -14],
-  [10, 10], [-10, 10], [10, -10], [-10, -10]
-];
+  const PIX_OFFSETS = [
+    [0, 0], [14, 0], [-14, 0], [0, 14], [0, -14],
+    [10, 10], [-10, 10], [10, -10], [-10, -10]
+  ];
 
-// 주소→좌표, 실패 시 키워드 검색으로 보정
-const geocodeOne = (kakao, geocoder, places, item, regionHint) =>
-  new Promise((resolve) => {
-    const addr = (item.address || "").trim();
-    const title = (item.title || "").trim();
-    const tryKeyword = () => {
-      const keyword = `${regionHint || ""} ${title}`.trim();
-      if (!keyword) return resolve(null);
-      places.keywordSearch(keyword, (data, status) => {
-        if (status === kakao.maps.services.Status.OK && data[0]) {
-          return resolve(new kakao.maps.LatLng(data[0].y, data[0].x));
-        }
-        resolve(null);
-      }, { page: 1, size: 1 });
-    };
+  const geocodeOne = (kakao, geocoder, places, item, regionHint) =>
+    new Promise((resolve) => {
+      const addr = (item.address || "").trim();
+      const title = (item.title || "").trim();
+      const tryKeyword = () => {
+        const keyword = `${regionHint || ""} ${title}`.trim();
+        if (!keyword) return resolve(null);
+        places.keywordSearch(keyword, (data, status) => {
+          if (status === kakao.maps.services.Status.OK && data[0]) {
+            return resolve(new kakao.maps.LatLng(data[0].y, data[0].x));
+          }
+          resolve(null);
+        }, { page: 1, size: 1 });
+      };
 
-    if (!addr) return tryKeyword();
+      if (!addr) return tryKeyword();
 
-    geocoder.addressSearch(addr, (result, status) => {
-      if (status === kakao.maps.services.Status.OK && result[0]) {
-        return resolve(new kakao.maps.LatLng(result[0].y, result[0].x));
-      }
-      // 주소 실패 → 키워드 보정
-      tryKeyword();
-    });
-  });
-
-const drawMarkersForDay = async (dayIdx) => {
-  if (!mapRef.current || !geocoderRef.current || !placesRef.current || !window.kakao?.maps) return;
-
-  clearMarkers();
-
-  const kakao = window.kakao;
-  const geocoder = geocoderRef.current;
-  const places = placesRef.current;
-
-  const items = days[dayIdx] || [];
-  const bounds = new kakao.maps.LatLngBounds();
-
-  const baseStyle =
-    "width:43px;height:43px;border-radius:50%;background:#fff;" +
-    "border:3px solid #3AC581;display:flex;align-items:center;" +
-    "justify-content:center;color:#2C2F33;font-size:20px;font-weight:500;" +
-    "box-shadow:0 1px 2px rgba(0,0,0,.06)";
-
-  // 동일 좌표 카운팅(겹침 방지용 오프셋 결정)
-  const dupCount = new Map(); // key: "lat.toFixed(5),lng.toFixed(5)" → count
-
-  for (let i = 0; i < items.length; i++) {
-    // 순서대로 하나씩(속도/쿼터 안전)
-    // eslint-disable-next-line no-await-in-loop
-    const pos = await geocodeOne(kakao, geocoder, places, items[i], courseInfo.region);
-    if (!pos) continue;
-
-    bounds.extend(pos);
-
-    const key = `${pos.getLat().toFixed(5)},${pos.getLng().toFixed(5)}`;
-    const count = (dupCount.get(key) || 0) + 1;
-    dupCount.set(key, count);
-
-    const [ox, oy] = PIX_OFFSETS[(count - 1) % PIX_OFFSETS.length];
-    const content = `<div style="${baseStyle};margin-left:${ox}px;margin-top:${oy}px;">${i + 1}</div>`;
-
-    const overlay = new kakao.maps.CustomOverlay({
-      position: pos,
-      content,
-      xAnchor: 0.5,
-      yAnchor: 0.5,
-      zIndex: 10 + i,
-      clickable: false,
-    });
-    overlay.setMap(mapRef.current);
-    markersRef.current.push(overlay);
-  }
-
-  if (!bounds.isEmpty()) {
-    mapRef.current.setBounds(bounds);
-  } else {
-    // 아무 좌표도 못 찾았을 때 지역 중심으로
-    const center = await new Promise((resolve) => {
-      geocoder.addressSearch(courseInfo.region, (result, status) => {
+      geocoder.addressSearch(addr, (result, status) => {
         if (status === kakao.maps.services.Status.OK && result[0]) {
-          resolve(new kakao.maps.LatLng(result[0].y, result[0].x));
-        } else {
-          resolve(new kakao.maps.LatLng(37.5665, 126.9780));
+          return resolve(new kakao.maps.LatLng(result[0].y, result[0].x));
         }
+        tryKeyword();
       });
     });
-    mapRef.current.setCenter(center);
-    mapRef.current.setLevel(7);
-  }
-};
+
+  const drawMarkersForDay = async (dayIdx) => {
+    if (!mapRef.current || !geocoderRef.current || !placesRef.current || !window.kakao?.maps) return;
+
+    clearMarkers();
+
+    const kakao = window.kakao;
+    const geocoder = geocoderRef.current;
+    const places = placesRef.current;
+
+    const items = days[dayIdx] || [];
+    const bounds = new kakao.maps.LatLngBounds();
+
+    const baseStyle =
+      "width:43px;height:43px;border-radius:50%;background:#fff;" +
+      "border:3px solid #3AC581;display:flex;align-items:center;" +
+      "justify-content:center;color:#2C2F33;font-size:20px;font-weight:500;" +
+      "box-shadow:0 1px 2px rgba(0,0,0,.06)";
+
+    const dupCount = new Map();
+
+    for (let i = 0; i < items.length; i++) {
+      // eslint-disable-next-line no-await-in-loop
+      const pos = await geocodeOne(kakao, geocoder, places, items[i], courseInfo.region);
+      if (!pos) continue;
+
+      bounds.extend(pos);
+
+      const key = `${pos.getLat().toFixed(5)},${pos.getLng().toFixed(5)}`;
+      const count = (dupCount.get(key) || 0) + 1;
+      dupCount.set(key, count);
+
+      const [ox, oy] = PIX_OFFSETS[(count - 1) % PIX_OFFSETS.length];
+      const content = `<div style="${baseStyle};margin-left:${ox}px;margin-top:${oy}px;">${i + 1}</div>`;
+
+      const overlay = new kakao.maps.CustomOverlay({
+        position: pos,
+        content,
+        xAnchor: 0.5,
+        yAnchor: 0.5,
+        zIndex: 10 + i,
+        clickable: false,
+      });
+      overlay.setMap(mapRef.current);
+      markersRef.current.push(overlay);
+    }
+
+    if (!bounds.isEmpty()) {
+      mapRef.current.setBounds(bounds);
+    } else {
+      const center = await new Promise((resolve) => {
+        geocoder.addressSearch(courseInfo.region, (result, status) => {
+          if (status === kakao.maps.services.Status.OK && result[0]) {
+            resolve(new kakao.maps.LatLng(result[0].y, result[0].x));
+          } else {
+            resolve(new kakao.maps.LatLng(37.5665, 126.9780));
+          }
+        });
+      });
+      mapRef.current.setCenter(center);
+      mapRef.current.setLevel(7);
+    }
+  };
 
   useEffect(() => {
     if (days.length > 0) drawMarkersForDay(selectedDay - 1);
@@ -633,16 +762,14 @@ const drawMarkersForDay = async (dayIdx) => {
     return regionImg;
   };
 
-  // 메인 히어로 이미지 결정: state.heroImage > 지역 대표 > 첫 장소 이미지
-  // 1) 지역 대표 이미지 (TourAPI) 시도
+  // 메인 히어로 이미지
   useEffect(() => {
     if (!courseInfo.region) return;
-    if (location.state?.heroImage) return; // 이미 초기화됨
+    if (location.state?.heroImage) return;
     const img = pickRegionImage(courseInfo.region, tourNature, tourFood, tourStay);
     if (img) setHeroImg(img);
   }, [courseInfo.region, tourNature, tourFood, tourStay, location.state]);
 
-  // 2) 일차/장소 이미지로 보조 설정
   useEffect(() => {
     if (heroImg && heroImg !== regionImg) return;
     const first = days?.[0]?.[0];
@@ -653,93 +780,197 @@ const drawMarkersForDay = async (dayIdx) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days, imgIndex]);
 
+  // === 서버 페이로드 빌드 ===
+  function buildPayload() {
+    const inpStartDate = normalizeDateInput(startDate);
+    const inpEndDate = normalizeDateInput(endDate);
+    const regionProvince =
+      (courseInfo.region || "").split(" ")[0] || courseInfo.region || "전라남도";
+
+    // 일정 전체에서 첫 숙소 추출(있으면 accommodation으로 보냄)
+    const firstStay = (days.flat().find((it) => it?.category === "숙소") || null);
+    const accommodation = firstStay
+      ? {
+          name: firstStay.title || "",
+          address: firstStay.address || "",
+          description: "",
+          imgUrl: imageFor(firstStay) || "",
+        }
+      : undefined;
+
+    const courseDays = days.map((dayItems, idx) => ({
+      day: idx + 1,
+      places: dayItems
+        .filter((it) => it && it.title)
+        .map((it) => ({
+          placeName: it.title || "",
+          description: "", // 설명은 비움
+          address: it.address || "",
+          imgUrl: imageFor(it) || "",
+        })),
+    }));
+
+    return {
+      groupInput: {
+        inpStartDate,
+        inpEndDate,
+        inpRegion: regionProvince,
+        inpAdultCnt: 2,   // 필요 시 UI 연동 가능
+        inpChildCnt: 0,
+        inpBabyCnt: 0,
+        inpStyle: "etc",
+      },
+      course: {
+        title: (`${courseInfo.region || "전라남도"} ${courseInfo.period || ""}`).trim() + " 코스",
+        days: courseDays,
+        ...(accommodation ? { accommodation } : {}),
+      },
+    };
+  }
+
+  // === 저장 실행 ===
+  async function handleSaveCourse() {
+    try {
+      if (saving) return;
+      const token = localStorage.getItem("accesToken") || localStorage.getItem("accessToken");
+      if (!token) {
+        window.alert("로그인이 필요합니다. (토큰이 없습니다)");
+        return;
+      }
+
+      const payload = buildPayload();
+
+      if (!payload.groupInput.inpStartDate || !payload.groupInput.inpEndDate) {
+        window.alert("촌캉스 일자를 정확히 입력해 주세요. 예) 2025-10-11");
+        return;
+      }
+      if (!days?.length) {
+        window.alert("저장할 코스가 없습니다.");
+        return;
+      }
+
+      setSaving(true);
+      const res = await axios.post(
+        "https://smartzoo.shop/templates/save",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("코스 저장 성공:", res.data);
+      window.alert("코스가 저장되었습니다.");
+    } catch (err) {
+      console.error("코스 저장 실패:", err);
+      const msg = err?.response?.data?.message || err?.message || "알 수 없는 오류";
+      window.alert(`저장에 실패했습니다: ${msg}`);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div className="CourseDetail">
-        <Header />
-        {/* 메인 이미지 교체 */}
-        <img className="detail-main-img" src={heroImg || regionImg} alt="지역대표이미지" />
+      <Header />
+      <img className="detail-main-img" src={heroImg || regionImg} alt="지역대표이미지" />
 
-        <div className="detail-course-info">
-            <div className="detail-course-info-left">
-                <div className="detail-course-period">{courseInfo.period || "기간 미정"}</div>
-                <div className="detail-course-region">{courseInfo.region || "지역 미정"}</div>
-                <span>
-                    {courseInfo.region
-                    ? `${courseInfo.region}에 맞춘 ${courseInfo.period || "맞춤"} 촌캉스를 즐겨보세요.`
-                    : "원하는 지역과 기간을 선택해 맞춤 코스를 구성해보세요."}
-                </span>
-            </div>
-
-            <div className="detail-course-info-rightBox">
-                <div className="detail-course-day-box">
-                    <span>촌캉스 일자</span>
-                    <div className="detail-course-date-selected">
-                        <input type="text" className="detail-day-selected" placeholder="YY / MM / DD"
-                                value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-                        <div className="detail-day-dash">-</div>
-                        <input type="text" className="detail-day-selected" placeholder="YY / MM / DD"
-                                value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-                    </div>
-                </div>
-                    <button>코스 저장하기</button>
-                </div>
-            </div>
-
-            <hr style={{ border: "none", height: "2px", width: "1200px", backgroundColor: "#E7ECF1", marginTop: "30px" }} />
-
-            <div className="course-info-container">
-            {/* 일차 탭 */}
-            <div className="detail-course-period-1day">
-                {Array.from(
-                { length: Math.max(daysFromPeriod(courseInfo.period), days.length || 0) },
-                (_, i) => (
-                    <span key={i}
-                        className={i + 1 === selectedDay ? "active" : ""}
-                        onClick={() => { setSelectedDay(i + 1); setSelectedIdx(0); }}
-                        style={{ cursor: "pointer" }}>
-                    {i + 1}일차
-                    </span>
-                )
-                )}
-            </div>
-            {/* 일차별 장소 미리보기(상단 가로 카드) */}
-            <div className="day-course-place-container">
-                {(days[selectedDay - 1] || []).map((it, idx) => (
-                <div key={`${it.title}-${idx}`}
-                    className={`place-title-img ${idx === selectedIdx ? "active" : ""}`}
-                    onClick={() => setSelectedIdx(idx)}
-                    style={{ cursor: "pointer" }}>
-                    <img src={imageFor(it)} alt="장소이미지" />
-                    <div className="place-title">
-                        <span>{idx + 1}</span>
-                        <div className="place-title-text">{it.title || "이름 없음"}</div>
-                    </div>
-                </div>
-                ))}
-            </div>
-
-            {/* 하단 상세 패널 */}
-            <div className="course-detail-contents-box">
-                <img src={imageFor(days[selectedDay - 1]?.[selectedIdx])} alt="장소이미지" />
-                <div className="course-detail-contents-text">
-                    <div className="course-detail-contents-top-text">
-                        <div className="course-detail-contents-title">
-                            {days[selectedDay - 1]?.[selectedIdx]?.title || ""}
-                        </div>
-                        <img src={placeIcon} alt="장소아이콘" />
-                        <div className="course-detail-place-address">
-                            {days[selectedDay - 1]?.[selectedIdx]?.address || ""}
-                        </div>
-                    </div>
-                    <div className="course-detail-contents-subcontents">
-                        {/* 설명 비움 */}
-                    </div>
-                </div>
-            </div>
-
-            <span className="course-detail-map-title">위치 정보</span>
-            <div id="map" className="course-detail-map-box" />
+      <div className="detail-course-info">
+        <div className="detail-course-info-left">
+          <div className="detail-course-period">{courseInfo.period || "기간 미정"}</div>
+          <div className="detail-course-region">{courseInfo.region || "지역 미정"}</div>
+          <span>
+            {courseInfo.region
+              ? `${courseInfo.region}에 맞춘 ${courseInfo.period || "맞춤"} 촌캉스를 즐겨보세요.`
+              : "원하는 지역과 기간을 선택해 맞춤 코스를 구성해보세요."}
+          </span>
         </div>
+
+        <div className="detail-course-info-rightBox">
+          <div className="detail-course-day-box">
+            <span>촌캉스 일자</span>
+            <div className="detail-course-date-selected">
+              <input
+                type="text"
+                className="detail-day-selected"
+                placeholder="YY / MM / DD"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+              <div className="detail-day-dash">-</div>
+              <input
+                type="text"
+                className="detail-day-selected"
+                placeholder="YY / MM / DD"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+          </div>
+          <button onClick={handleSaveCourse} disabled={saving}>
+            {saving ? "저장 중..." : "코스 저장하기"}
+          </button>
+        </div>
+      </div>
+
+      <hr style={{ border: "none", height: "2px", width: "1200px", backgroundColor: "#E7ECF1", marginTop: "30px" }} />
+
+      <div className="course-info-container">
+        {/* 일차 탭 */}
+        <div className="detail-course-period-1day">
+          {Array.from(
+            { length: Math.max(daysFromPeriod(courseInfo.period), days.length || 0) },
+            (_, i) => (
+              <span key={i}
+                    className={i + 1 === selectedDay ? "active" : ""}
+                    onClick={() => { setSelectedDay(i + 1); setSelectedIdx(0); }}
+                    style={{ cursor: "pointer" }}>
+                {i + 1}일차
+              </span>
+            )
+          )}
+        </div>
+
+        {/* 일차별 장소 미리보기(상단 가로 카드) */}
+        <div className="day-course-place-container">
+          {(days[selectedDay - 1] || []).map((it, idx) => (
+            <div key={`${it.title}-${idx}`}
+                 className={`place-title-img ${idx === selectedIdx ? "active" : ""}`}
+                 onClick={() => setSelectedIdx(idx)}
+                 style={{ cursor: "pointer" }}>
+              <img src={imageFor(it)} alt="장소이미지" />
+              <div className="place-title">
+                <span>{idx + 1}</span>
+                <div className="place-title-text">{it.title || "이름 없음"}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 하단 상세 패널 */}
+        <div className="course-detail-contents-box">
+          <img src={imageFor(days[selectedDay - 1]?.[selectedIdx])} alt="장소이미지" />
+          <div className="course-detail-contents-text">
+            <div className="course-detail-contents-top-text">
+              <div className="course-detail-contents-title">
+                {days[selectedDay - 1]?.[selectedIdx]?.title || ""}
+              </div>
+              <img src={placeIcon} alt="장소아이콘" />
+              <div className="course-detail-place-address">
+                {days[selectedDay - 1]?.[selectedIdx]?.address || ""}
+              </div>
+            </div>
+            <div className="course-detail-contents-subcontents">
+              {/* 설명 비움 */}
+            </div>
+          </div>
+        </div>
+
+        <span className="course-detail-map-title">위치 정보</span>
+        <div id="map" className="course-detail-map-box" />
+      </div>
     </div>
   );
 }

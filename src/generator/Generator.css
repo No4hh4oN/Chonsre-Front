@@ -45,19 +45,14 @@
 
 .GeneratorBox_Content {
     margin-top: 137px;
-    width: 990px;
-    height: 465px;
-    border-radius: 30px;
-    padding-top: 88px;
-    padding-right: 105px;
-    padding-left: 105px;
-    background-color: #FFFFFF;
+    width: 1200px;
     z-index: 3;
 
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: flex-start;
-    gap: 268px;
+    gap: 30px;
 }
 
 .CourseGenerator.inactive {
@@ -93,10 +88,14 @@
     height: 150px;
 }
 
-.GeneratorBox_Contentbox {
+.GeneratorBox_Contentbox1 {
     display: flex;
-    flex-direction: column;
-    gap: 65px;
+    justify-content: space-between;
+    width: calc(100% - 258px);
+    height: 113px;
+    padding: 47px 129px;
+    background-color: #FFFFFF;
+    border-radius: 30px;
 }
 
 .GeneratorBox_Contents {
@@ -169,152 +168,96 @@
     font-size: 24px;
 }
 
-/* 여행 스타일 그리드 */
-
-.Style_Items {
-    padding: 15px 23px;
-    background-color: #F3F5F7;
-    border-radius: 60px;
-    cursor: pointer;
-}
-
-#Style_Items_label {
-    font-family: 'Pretendard-Regular';
-    font-size: 22px;
-    color: #B5BCC3;
-    white-space: nowrap;
-}
-
-.Style_Items.selected {
-  background-color: #3AC581;
-}
-
-.Style_Items.selected #Style_Items_label {
-    color: #FFFFFF;
-}
-
-
-
-/* 촌캉스 지역 선택자 스타일 */
-.region-dropdown {
-    position: absolute;
-    top: 45px;
-    left: -35px;
-    width: 343px;
-    height: 424px;
-    padding: 40px 36px;
-    border-radius: 30px;
+.GeneratorBox_Contentbox2 {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    width: calc(100% - 60px);
+    height: 300px;
+    padding: 30px;
     background-color: #FFFFFF;
-    box-shadow: 0px 0px 14px 0px #B3BED240;
-    z-index: 10;
+    border-radius: 30px;
+}
+    
+.GeneratorBox_TemaIntro {
+    font-family: 'Pretendard-SemiBold';
+    font-size: 24px;
+    color: #2C2F33;
+
 }
 
-.searchBox {
-    height: 51px;
-    display: flex;
-    align-items: center;
-    gap: 26px;
-    margin-bottom: 43px;
+#TemaHighlight {
+    color: #3AC581;
 }
 
-.search-bar {
-    font-family: 'Pretendard-Regular';
-    font-size: 18px;
-    width: 249px;
-    height: 51px;
-    background-color: #F3F5F7;
-    padding-left: 33px;
-    border-radius: 12px;
-    border: none;
-    outline: none;
-    display: flex;
-}
-
-.search-bar::placeholder {
-    color: #B5BCC3;
-}
-
-#scope {
-    width: 33px;
-    height: 30px;
-}
-
-.region-dropdown-content {
-    display: flex;
-}
-
-.region-categories {
-    width: 140px;
-    height: 309px;
-    border-right: 1px solid #D3D8DE;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-}
-
-.region-categories span {
-    font-family: 'Pretendard-Regular';
-    font-size: 20px;
-    color: #B5BCC3;
+.GeneratorBox_Temabox {
+    width: 100%;
+    height: 211px;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 8px 18px;
+    gap: 30px;
+}
+
+.GeneratorBox_Tema {
+    position: relative;
+    width: 355px;
+    height: 211px;
+    border-radius: 30px;
     cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.region-categories span.selected {
-    font-family: 'Pretendard-Regular';
-    font-size: 20px;
+.GeneratorBox_Tema:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 5px #3AC581;
+}
+
+.GeneratorBox_Tema.selected {
+    box-shadow: 0 0 0 4px #3AC581;
+    transform: scale(1.03);
+}
+
+.GeneratorBox_TemaBlur{
+    width: 100%;
+    height: 100%;
+    border-radius: 30px;
+    background: linear-gradient(to bottom, #00000000 0%, #00000090 100%);
+}
+
+
+.Tema_title {
+    position: absolute;
+    left: 30px;
+    bottom: 25px;
+    font-family: 'Pretendard-SemiBold';
+    font-size: 28px;
     color: #FFFFFF;
-    background-color: #3AC581;
-    border-radius: 10px;
 }
 
-.region-list {
-    width: 150px;
-    height: 309px;
-    overflow-y: auto;
-    margin-left: 49px;
-    display: flex;
-    flex-direction: column;
-    gap: 33px;
-    font-family: 'Pretendard-Regular';
-    font-size: 20px;
-    color: #656B70;
-
-    scrollbar-width: auto;
-    -ms-overflow-style: auto;
+.Tema_subtitle {
+    position: absolute;
+    left: 118px;
+    bottom: 32px;
+    font-family: 'Pretendard-Medium';
+    font-size: 16px;
+    color: #FFFFFF;
 }
 
-.region-list::-webkit-scrollbar {
-    display: block;
-    width: 8px;
+#farm {
+    background-image: url('/images/BgImg2.png');
+    background-size: cover;
 }
 
-.region-list::-webkit-scrollbar-thumb {
-    background-color: rgba(100, 100, 100, 0.3);
-    border-radius: 4px;
+#fishing {
+    background-image: url('/images/BgImg3.png');
+    background-size: cover;
 }
 
-.region-list::-webkit-scrollbar-track {
-    background: transparent;
+#etc {
+    background-image: url('/images/BgImg4.png');
+    background-size: cover;
 }
-
-.region-list span {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-#NoResult {
-    margin-top: 50px;
-    font-family: 'Pretendard-Regular';
-    font-size: 13px;
-    color: #B5BCC3;
-}
-
 
 /* 인원 입력 모달 스타일 */
 .CustomModal1 {
@@ -508,4 +451,59 @@
     font-family: 'Pretendard-Medium';
     font-size: 16px;
     color: #8F959B;
+}
+
+/* 여행 지역 추천 모달 */
+.CustomModal3 {
+    position: relative;
+    border-radius: 30px;
+    width: 1260px;
+    height: 764px;
+    background-color: #FFFFFF;
+    border: none;
+    outline: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    z-index: 9999;
+}
+
+.moutainIcon {
+    width: 480px;
+    height: 480px;
+}
+
+.loadingText {
+    font-family: 'Pretendard-SemiBold';
+    font-size: 36px;
+    color: #2C2F33;
+}
+
+.loadingText_highlight {
+    color: #3AC581;
+}
+
+
+.RegionRecommend_ProgressBar {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 31px;
+    display: flex;
+    justify-content: flex-start;
+    background-color: #F3F5F7;
+}
+
+.ProgressFill {
+    width: 0%;
+    height: 100%;
+    background-color: #FFAF12;
+    transition: width 0.1s linear;
+}
+
+.RegionMeta_Image {
+    width: 40%;
 }

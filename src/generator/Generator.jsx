@@ -1,7 +1,10 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from 'react-router-dom';
 import Modal from 'react-modal';
 import AxiosClient, { setAuthToken } from "../AxiosClient";
 import Header from "../components/header";
+// import moutainIcon from '/icons/mountain.png';
 import dropdown2 from '/icons/dropdown2.png';
 import scope from '/icons/scope.png';
 
@@ -12,22 +15,16 @@ const bgImages = [
     '/images/BgImg1.png',
     '/images/BgImg2.png',
     '/images/BgImg3.png',
-    '/images/BgImg4.png'
+    '/images/BgImg4.png',
+    '/images/BgImg5.png',
+    '/images/BgImg6.png',
+    '/images/BgImg7.png'
 ];
-
-// 지역 선택을 위한 지역명
-const REGION_TYPES = ["특별시", "광역시", "특별자치시", "도", "특별자치도"];
-const REGION_OPTIONS = {
-    특별시: ["서울특별시"],
-    광역시: ["부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시", "울산광역시"],
-    특별자치시: ["세종특별자치시"],
-    도: ["경기도", "강원도", "충청북도", "충청남도", "전라북도", "전라남도", "경상북도", "경상남도"],
-    특별자치도: ["제주특별자치도"]
-};
 
 Modal.setAppElement('#root');
 
 export default function Generator() {
+    const navigator = useNavigate();
 
     // 배경 이미지 슬라이드
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -38,37 +35,6 @@ export default function Generator() {
         }, 4000);
         return () => clearInterval(interval);
     }, []);
-
-    // 지역 선택 로직
-    const [selectedRegion, setSelectedRegion] = useState("");
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState("광역시");
-    const dropdownRef = useRef(null);
-
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-                setIsDropdownOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    // 지역 검색
-    const [searchTerm, setSearchTerm] = useState("");
-
-
-    useEffect(() => {
-        if (searchTerm) {
-            const matchedCategory = REGION_TYPES.find((category) =>
-                REGION_OPTIONS[category].some(region => region.includes(searchTerm))
-            );
-            if (matchedCategory) {
-                setSelectedCategory(matchedCategory);
-            }
-        }
-    }, [searchTerm]);
 
     // 인원 입력 모달
     const [isPeopleModalOpen, setIsPeopleModalOpen] = useState(false);
@@ -146,19 +112,24 @@ export default function Generator() {
         setIsDateInput(true);
     };
 
-    // 여행 스타일 단일 선택
-    const [selectedStyle, setSelectedStyle] = useState("");
+    // 농어촌 테마 선택
+    const [selectedTema, setSelectedTema] = useState("");
 
-    const handleStyleClick = (label) => {
-        setSelectedStyle(label);
+    const handleTemaClick = (tema) => {
+        setSelectedTema(tema);
+        console.log("선택된 테마:", tema); // 디버깅용
     };
 
-    // 코스 추천받기
+
+    // 지역 추천받기
     // 서버에서 원하는 형식이랑 차이가 있어서 전처리 과정후 전송해야함
+    // 
+    const [progress, setProgress] = useState(0);
+    const [isProgressDone, setIsProgressDone] = useState(false);
+    const [recommendedRegion, setRecommendedRegion] = useState("");
+
     const isReadyToRequest = (
-        startDate && endDate &&
-        selectedRegion &&
-        selectedStyle
+        startDate && endDate && selectedTema
     );
 
     const formatToDashDate = (slashDate) => {
@@ -169,25 +140,70 @@ export default function Generator() {
 
 
     const getCourseRecommend = async () => {
-        if(isReadyToRequest == false) {
+        if (isReadyToRequest == false) {
             alert("모든 입력란을 채워주세요.")
-            return(0);
+            return (0);
         }
+
+        // 보여질 추천값 초기화
+        setRecommendedRegion("");
+        setRegionModalOpen(true);
+
         try {
-            const res = await AxiosClient.post('/recommend/region-first', {
+            const res = await AxiosClient.post('/recommend/group', {
                 inpStartDate: formatToDashDate(startDate),
                 inpEndDate: formatToDashDate(endDate),
-                inpRegion: selectedRegion,
-                inpStyle: selectedStyle.replace(/\s/g, ""),
                 inpAdultCnt: adultCount,
                 inpChildCnt: childCount,
                 inpBabyCnt: babyCount,
+                inpTema: selectedTema,
+                isTemplate: false
             });
-            console.log("추천 결과:", res.data.recommendedRegion);
-            
-        } catch(err) {
+
+            console.log(res.data);
+            localStorage.setItem("groupId", res.data.groupId);
+            localStorage.setItem("inpStartDate", startDate);
+            localStorage.setItem("inpEndDate", endDate);
+            navigator('/CourseEditor');
+        } catch (err) {
             console.error(err);
             alert("코스 추천 요청에 실패했습니다.");
+        }
+    }
+
+    // 지역 추천 결과 표시 모달
+    const [RegionModalOpen, setRegionModalOpen] = useState(false);
+    const [nickname, setNickname] = useState('');
+
+    useEffect(() => {
+        let interval;
+
+        if (RegionModalOpen && !recommendedRegion) {
+            setProgress(0);
+            setIsProgressDone(false);
+            getNickname();
+
+            interval = setInterval(() => {
+                setProgress((prev) => {
+                    const next = prev + 1;
+                    if (next >= 100) {
+                        clearInterval(interval);
+                        setIsProgressDone(true);
+                    }
+                    return next;
+                });
+            }, 150);
+        }
+
+        return () => clearInterval(interval);
+    }, [RegionModalOpen]);
+
+    const getNickname = async () => {
+        try {
+            const res = await AxiosClient.get('/auth/me');
+            setNickname(res.data.nickname);
+        } catch (error) {
+            console.error(error)
         }
     }
 
@@ -205,77 +221,7 @@ export default function Generator() {
                 ))}
                 <div className="GeneratorBox_Blur">
                     <div className="GeneratorBox_Content">
-                        <div className="GeneratorBox_Contentbox">
-                            <div className="GeneratorBox_Contents">
-                                <span className="GeneratorBox_Contents_title">촌캉스 지역</span>
-                                <div
-                                    id="trip_area"
-                                    className="GeneratorBox_Contents_input"
-                                    onClick={() => setIsDropdownOpen(prev => !prev)}
-                                >
-                                    <span className={selectedRegion ? "selected" : "placeholder"}>
-                                        {selectedRegion || "지역 찾아보기"}
-                                    </span>
-                                    <img id="dropdown2" src={dropdown2} alt="드롭다운버튼" />
-
-                                    {isDropdownOpen && (
-                                        <div className="region-dropdown">
-                                            <div className="searchBox">
-                                                <input className="search-bar"
-                                                    placeholder="어디든 떠나요!"
-                                                    value={searchTerm}
-                                                    onClick={(e) => e.stopPropagation()}
-                                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                                />
-                                                <img id="scope" src={scope} alt="돋보기" />
-                                            </div>
-                                            <div className="region-dropdown-content">
-                                                <div className="region-categories">
-                                                    {REGION_TYPES.map((type) => (
-                                                        <span
-                                                            key={type}
-                                                            className={type === selectedCategory ? "selected" : ""}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setSelectedCategory(type);
-                                                                setSearchTerm("");
-                                                            }}
-                                                        >
-                                                            {type}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                                <div className="region-list">
-                                                    {(searchTerm
-                                                        ? REGION_OPTIONS[selectedCategory].filter(region =>
-                                                            region.includes(searchTerm)
-                                                        )
-                                                        : REGION_OPTIONS[selectedCategory]
-                                                    ).map((region) => (
-                                                        <span
-                                                            key={region}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setSelectedRegion(region);
-                                                                setIsDropdownOpen(false);
-                                                                setSearchTerm("");
-                                                            }}
-                                                        >
-                                                            {region}
-                                                        </span>
-                                                    ))}
-                                                    {searchTerm &&
-                                                        REGION_OPTIONS[selectedCategory].filter(region =>
-                                                            region.includes(searchTerm)
-                                                        ).length === 0 && (
-                                                            <span id="NoResult">검색 결과가 없습니다.</span>
-                                                        )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                        <div className="GeneratorBox_Contentbox1">
                             <div className="GeneratorBox_Contents">
                                 <span className="GeneratorBox_Contents_title">인원</span>
                                 <div id="trip_people" className="GeneratorBox_Contents_input" onClick={() => setIsPeopleModalOpen(true)}>
@@ -285,8 +231,7 @@ export default function Generator() {
                                     <img id="dropdown2" src={dropdown2} alt="openModal1" />
                                 </div>
                             </div>
-                        </div>
-                        <div className="GeneratorBox_Contentbox">
+
                             {/* openModal2 */}
                             <div className="GeneratorBox_Contents">
                                 <span className="GeneratorBox_Contents_title">촌캉스 일자</span>
@@ -306,25 +251,30 @@ export default function Generator() {
                                     )}
                                 </div>
                             </div>
-                            <div className="GeneratorBox_Contents">
-                                <span className="GeneratorBox_Contents_title">촌캉스 스타일</span>
-                                <div id="trip_style" className="GeneratorBox_Contents_input">
-                                    {[
-                                        { label: "가족 여행" },
-                                        { label: "힐링" },
-                                        { label: "우정 여행" },
-                                        { label: "뚜벅이" },
-                                        { label: "데이트" },
-                                        { label: "그 외" },
-                                    ].map(({ label }) => (
-                                        <div
-                                            key={label}
-                                            className={`Style_Items ${selectedStyle === label ? "selected" : ""}`}
-                                            onClick={() => handleStyleClick(label)}
-                                        >
-                                            <span id="Style_Items_label">{label}</span>
-                                        </div>
-                                    ))}
+                        </div>
+                        <div className="GeneratorBox_Contentbox2">
+                            <div className="GeneratorBox_TemaIntro">
+                                전남 촌캉스의 <span id="TemaHighlight">테마</span>를 선택해주세요
+                            </div>
+                            <div className="GeneratorBox_Temabox">
+                                <div id="farm" className={`GeneratorBox_Tema ${selectedTema === "farm" ? "selected" : ""}`}
+                                    onClick={() => handleTemaClick("farm")}>
+                                    <div className="GeneratorBox_TemaBlur">
+                                        <span className="Tema_title">농촌</span>
+                                        <span className="Tema_subtitle">향수 물씬, 우리 농산물이 자라는 곳</span>
+                                    </div>
+                                </div>
+                                <div id="fishing" className={`GeneratorBox_Tema ${selectedTema === "fishing" ? "selected" : ""}`} onClick={() => handleTemaClick("fishing")}>
+                                    <div className="GeneratorBox_TemaBlur">
+                                        <span className="Tema_title">어촌</span>
+                                        <span className="Tema_subtitle">향수 물씬, 우리 농산물이 자라는 곳</span>
+                                    </div>
+                                </div>
+                                <div id="etc" className={`GeneratorBox_Tema ${selectedTema === "etc" ? "selected" : ""}`} onClick={() => handleTemaClick("etc")}>
+                                    <div className="GeneratorBox_TemaBlur">
+                                        <span className="Tema_title">그 외</span>
+                                        <span className="Tema_subtitle">자유롭게 전남의 느긋함을 즐겨요</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -363,7 +313,7 @@ export default function Generator() {
                             <div id="PeopleModal_buttons">
                                 <button id="minus" onClick={() => setCount(Math.max(0, count - 1))}>-</button>
                                 <span id="countValue">{count}</span>
-                                <button id="plus" onClick={() => setCount(Math.min(100, count + 1))}>+</button>
+                                <button id="plus" onClick={() => setCount(Math.min(10, count + 1))}>+</button>
                             </div>
                         </div>
                     ))}
@@ -425,6 +375,24 @@ export default function Generator() {
                 </button>
             </Modal>
 
+            {/* 여행 지역 추천 모달 */}
+            <Modal
+                isOpen={RegionModalOpen}
+                onRequestClose={() => setRegionModalOpen(false)}
+                contentLabel="여행 지역 추천 모달"
+                className="CustomModal3"
+                overlayClassName="CustomModalOverlay"
+                shouldCloseOnOverlayClick={false}
+                shouldCloseOnEsc={false}
+            >
+                {/* <img className="moutainIcon" src={moutainIcon} alt="산아이콘" /> */}
+                <div className="loadingText">
+                    {nickname || "사용자"}님을 위한 <span className="loadingText_highlight">전남의 촌캉스 지역</span>을 고르고 있어요…
+                </div>
+                <div className="RegionRecommend_ProgressBar">
+                    <div className="ProgressFill" style={{ width: `${progress}%` }}></div>
+                </div>
+            </Modal>
         </div>
     )
 }

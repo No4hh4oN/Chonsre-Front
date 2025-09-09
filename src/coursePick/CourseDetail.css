@@ -193,7 +193,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 40px;
+    gap:30px;
     margin-top: 30px;
     margin-bottom: 50px;
 }
@@ -214,13 +214,15 @@
     font-weight: 600;
     font-size: 28px;
     color: #2C2F33;
-    margin-right: 30px;
+    width: 160px;
+    margin-right: 20px;
 }
 .course-detail-place-address{
     font-family: 'Pretendard-Medium';
     font-weight: 500;
     font-size: 16px;
     color: #B5BCC3;
+    width: 260px;
 }
 
 .course-detail-contents-subcontents{

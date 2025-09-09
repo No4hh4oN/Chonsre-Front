@@ -33,6 +33,7 @@
 .modal-profile-img-edit img{
     width: 202px;
     height: 202px;
+    border-radius: 50%;
 }
 
 .modal-profile-img-edit{

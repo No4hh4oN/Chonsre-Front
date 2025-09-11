@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import Header from "../components/header";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import "./CourseDetail.css";
 import { useLocation, useParams } from "react-router-dom";
 import regionImg from "/images/BgImg2.png";
@@ -345,6 +345,126 @@ export default function CourseDetail() {
 
   // === 저장 진행 상태 ===
   const [saving, setSaving] = useState(false);
+
+// ===== GPT 설명 생성 상태 =====
+const OPENAI_KEY = import.meta.env.VITE_GPT_KEY;
+
+const [placeDescs, setPlaceDescs] = useState({});
+const [descLoadingKey, setDescLoadingKey] = useState(null);
+const abortRef = useRef(null);
+
+// 현재 선택된 장소
+const currentPlace = useMemo(() => {
+  return days?.[selectedDay - 1]?.[selectedIdx] || null;
+}, [days, selectedDay, selectedIdx]);
+
+const placeKeyOf = (it) => {
+  const t = (it?.title || "").trim();
+  const a = (it?.address || "").trim();
+  return `${t}__${a}`;
+};
+
+const endsWithIda = (s) => /이다\.$/.test(s.trim());
+const forceIdaEnding = (s) => {
+  let x = s.trim().replace(/\s+/g, " ");
+  if (!endsWithIda(x)) {
+    x = x.replace(/([.!?]|입니다\.|죠\.|에요\.|예요\.)\s*$/u, "이다.");
+    if (!endsWithIda(x)) x = (x.replace(/[.!?]?\s*$/u, "") + "이다.").trim();
+  }
+  return x;
+};
+
+// 공백 포함 420~450자로 보정
+const clampLength = (raw) => {
+  let s = raw.replace(/\n+/g, " ").replace(/\s+/g, " ").trim();
+  if (s.length > 450) {
+    s = s.slice(0, 450).replace(/\s+$/g, "");
+    const lastIda = s.lastIndexOf("이다.");
+    if (lastIda >= 380) s = s.slice(0, lastIda + 3);
+    else s = forceIdaEnding(s);
+  }
+  if (s.length < 420) {
+    const pad = " 지역의 역사·지형·접근성, 운영 현황과 이용 팁을 함께 고려하면 방문 동선과 체류 시간을 효율화할 수 있다.";
+    s = (s + (s.endsWith(" ") ? "" : " ") + pad).trim();
+    if (s.length > 450) s = s.slice(0, 450).trim();
+    s = forceIdaEnding(s);
+  }
+  return forceIdaEnding(s);
+};
+
+async function generatePlaceDescription(it, region) {
+  if (!OPENAI_KEY || !it?.title) return "";
+
+  const title = (it.title || "").trim();
+  const address = (it.address || "").trim();
+  const category = (it.category || "").trim();
+
+  if (abortRef.current) abortRef.current.abort();
+  const ctrl = new AbortController();
+  abortRef.current = ctrl;
+
+  const system =
+    "너는 한국 관광 전문 큐레이터이다. 답변은 반드시 한국어로 하고, 모든 문장을 '이다.'로 끝내라. 사실과 다른 정보나 과장 금지. 실제로 해당 장소의 핵심 정보를 구조적으로 설명하라. 설명은 한 단락만 출력하고 공백 포함 420~450자로 제한하라. 스타일: 간결·객관·정보지향. 존댓말 금지. 감탄사 금지.";
+
+  const user = [
+    `장소명: ${title}`,
+    address ? `주소: ${address}` : "",
+    region ? `지역 힌트: ${region}` : "",
+    category ? `분류: ${category}` : "",
+    "",
+    "반드시 단락 1개, 공백 포함 420~450자, 모든 문장 어미는 '이다.'로 작성하라.",
+    "포함 요소 예시: 대표 볼거리/특징, 자연·문화·역사적 맥락, 접근성(대략), 이용 포인트·주요 동선, 계절 포인트(있다면).",
+  ].join("\n");
+
+  try {
+    setDescLoadingKey(placeKeyOf(it));
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      signal: ctrl.signal,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        temperature: 0.2,
+        max_tokens: 500,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+      }),
+    });
+
+    if (!res.ok) {
+      console.error("OpenAI API error:", await res.text());
+      return "";
+    }
+    const json = await res.json();
+    let text = (json?.choices?.[0]?.message?.content || "").trim();
+    if (!text) return "";
+
+    text = clampLength(text);
+    setPlaceDescs((prev) => ({ ...prev, [placeKeyOf(it)]: text }));
+    return text;
+  } catch (e) {
+    if (e?.name !== "AbortError") console.error(e);
+    return "";
+  } finally {
+    setDescLoadingKey(null);
+  }
+}
+
+// 선택 변경 시 자동 생성/로딩
+useEffect(() => {
+  const it = currentPlace;
+  if (!it) return;
+  const key = placeKeyOf(it);
+  if (placeDescs[key]) return;
+  generatePlaceDescription(it, courseInfo.region);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [currentPlace]);
+
 
   // 일수 계산
   function daysFromPeriod(period = "") {
@@ -937,9 +1057,9 @@ export default function CourseDetail() {
         <div className="day-course-place-container">
           {(days[selectedDay - 1] || []).map((it, idx) => (
             <div key={`${it.title}-${idx}`}
-                 className={`place-title-img ${idx === selectedIdx ? "active" : ""}`}
-                 onClick={() => setSelectedIdx(idx)}
-                 style={{ cursor: "pointer" }}>
+                className={`place-title-img ${idx === selectedIdx ? "active" : ""}`}
+                onClick={() => setSelectedIdx(idx)}
+                style={{ cursor: "pointer" }}>
               <img src={imageFor(it)} alt="장소이미지" />
               <div className="place-title">
                 <span>{idx + 1}</span>
@@ -962,9 +1082,27 @@ export default function CourseDetail() {
                 {days[selectedDay - 1]?.[selectedIdx]?.address || ""}
               </div>
             </div>
+
             <div className="course-detail-contents-subcontents">
-              {/* 설명 비움 */}
+              {(() => {
+                const it = currentPlace;
+                if (!it) return null;
+                const key = placeKeyOf(it);
+                const txt = placeDescs[key];
+
+                if (descLoadingKey === key && !txt) {
+                  return <span style={{ opacity: 0.7 }}>설명을 생성하는 중…</span>;
+                }
+                if (txt) return <span>{txt}</span>;
+
+                return (
+                  <span style={{ opacity: 0.7 }}>
+                    장소 정보 로딩 중입니다. 잠시만 기다려 주세요.
+                  </span>
+                );
+              })()}
             </div>
+
           </div>
         </div>
 

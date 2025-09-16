@@ -8,11 +8,31 @@
 .review-main-image{
     position: relative;
 }
+
 .review-main-image img{
     width: 1055px;
     height: 317px;
     border-radius: 33px;
+    display: block; /* 잔여 공백 제거*/
 }
+/* 이미지 위 그라데이션 오버레이 */
+.review-main-image::after{
+    content: "";
+    position: absolute;
+    inset: 0;                
+    border-radius: 33px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.13) 0%, rgba(0, 0, 0, 0.5) 100%);
+    pointer-events: none;   
+    z-index: 1;              
+}
+.review-main-image .info-box,
+.review-main-image .save-btn,
+.review-main-image .review-two-button,
+.review-main-image .review-menu {
+    /* position: relative; */
+    z-index: 2;
+}
+
 .review-main-image .save-btn {
     position: absolute;
     top: 20px;
@@ -191,6 +211,9 @@
     background-color: #ffffff;
     border: none;
     outline: none;
+    font-family: 'Pretendard- Medium';
+    font-weight: 500;
+    font-size: 18px;
 }
 .review-menu-delete{
     color: #F66A6A;
@@ -202,8 +225,15 @@
     background-color: #ffffff;
     border: none;
     outline: none;
+    font-family: 'Pretendard- Medium';
+    font-weight: 500;
+    font-size: 18px;
 }
 
 .info-period-course span.active {
     color: #2C2F33; 
+}
+
+.review-edit-icon{
+    cursor: pointer;
 }

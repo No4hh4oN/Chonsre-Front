@@ -1,0 +1,268 @@
+.Coursesave-detail{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.save-detail-main-img{
+    width: 1200px;
+    height: 484px;
+    border-radius: 16px;
+    margin-top: 45px;
+}
+.save-detail-course-info{
+    display: flex;
+    flex-direction: row;
+    gap: 130px;
+    margin-top: 30px;
+}
+
+.save-detail-course-period{
+    width: 92px;
+    height: 36px;
+    font-size: 16px;
+    border-radius: 30px;
+    background-color: #FFAF12;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.save-detail-course-region{
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 32px;
+    color:#2C2F33;
+}
+.save-detail-course-info-left{
+    font-family: 'Pretendard-Medium';
+    font-weight: 500;
+    font-size: 22px;
+    color: #8F959B;
+    width: 473px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.save-detail-course-info-rightBox{
+    margin-top: 40px;
+}
+
+.save-detail-course-day-box{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 30px;
+}
+.save-detail-course-day-box span{
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 22px;
+    color: #2C2F33;
+}
+.save-detail-course-date-selected{
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+}
+.save-detail-day-selected{
+    width: 210px;
+    height: 59px;
+    border-radius: 12px;
+    color: #3AC581;
+    outline: none;
+    border: none;
+    background-color: #F3F5F7;
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 18px;
+    text-align: center;
+}
+.save-detail-day-selected::placeholder{
+    color: #B5BCC3;
+    font-family: 'Pretendard-Medium';
+    font-weight: 500;
+    font-size: 18px;
+    text-align: center;
+}
+.save-detail-day-dash{
+    color: #656B70;
+    font-family: 'Pretendard-Regular';
+    font-weight: 400;
+    font-size: 36px;
+}
+
+.save-detail-course-info-rightBox button{
+    width: 467px;
+    height: 60px;
+    border-radius: 12px;
+    background-color: #3AC581;
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 20px;
+    text-align: center;
+    color: #ffffff;
+    border: none;
+    margin-left: 130px;
+    margin-top: 15px;
+}
+
+
+/* 부모가 align-items:center 여도 이 섹션만 왼쪽 시작 */
+.save-detail-course-period-1day{
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 36px;
+    color: #D3D8DE;
+    display: flex;
+    flex-direction: row;
+    gap: 40px;
+}
+.save-detail-course-period-1day span.active {
+    color: #2C2F33;     
+}
+
+.course-info-container{
+    width: 1200px;
+}
+
+
+.day-course-period-1day,.day-course-place-container{
+    display: flex;
+    flex-direction: row;
+}
+
+.save-detail-course-period-1day{
+    margin-top: 30px;
+    margin-bottom:30px ;
+}
+
+.day-course-place-container{
+    gap: 20px;
+}
+
+.place-title-img{
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.place-title-img img{
+    width: 284px;
+    height: 207px;
+    border-radius: 16px;
+    filter: brightness(50%);
+}
+
+.place-title{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+}
+.place-title span{
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(168, 168, 168, 0.42);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Pretendard-Medium';
+    font-weight: 500;
+    font-size: 18px;
+    color: #ffffff;
+}
+.place-title-text{
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 24px;
+    text-align: center;
+    color: #ffffff;
+}
+
+
+.course-save-detail-contents-box{
+    width: 1200px;
+    height: 485px;
+    border-radius: 20px;
+    border: 2px solid #E7ECF1;
+    display: flex;
+    flex-direction: row;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap:30px;
+    margin-top: 30px;
+    margin-bottom: 50px;
+}
+
+.course-save-detail-contents-box img{
+    width: 488px;
+    height: 360px;
+    border-radius: 16px;
+}
+
+.day-course-place-container .place-title-img.active {
+    border: 5px solid #3AC581; 
+    border-radius: 20px;
+}
+
+.course-save-detail-contents-title{
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 28px;
+    color: #2C2F33;
+    width: 200px;
+    margin-right: 20px;
+}
+.course-save-detail-place-address{
+    font-family: 'Pretendard-Medium';
+    font-weight: 500;
+    font-size: 16px;
+    color: #B5BCC3;
+    width: 260px;
+}
+
+.course-save-detail-contents-subcontents{
+    font-family: 'Pretendard-Medium';
+    font-weight: 500;
+    font-size: 18px;
+    color: #2C2F33;
+    width: 589px;
+    line-height: 30px;
+}
+
+.course-save-detail-contents-top-text img{
+    width: 21.709583282470703px;
+    height: 29.999847412109375px;
+    margin-right: 10px;
+}
+
+.course-save-detail-contents-top-text{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.course-save-detail-contents-text{
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.course-save-detail-map-title{
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 36px;
+    color: #2C2F33;
+}
+
+.course-save-detail-map-box{
+    margin-top: 30px;
+    margin-bottom: 50px;
+    width: 1199px;
+    height: 578px;
+    border-radius: 20px;
+}

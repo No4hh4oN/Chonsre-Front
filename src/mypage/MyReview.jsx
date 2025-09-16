@@ -3,10 +3,11 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Header from "../components/header";
 import './MyReview.css';
-import regionImg from "/images/BgImg3.png";
 import editcourse from '/icons/editCourse.png';
 import edit from '/icons/edit.png';
 import coursedelete from '/icons/delete.png';
+import replaceDetail from "/images/replaceDetail.png";
+
 
 export default function MyReview() {
   const navigator = useNavigate();
@@ -19,7 +20,7 @@ export default function MyReview() {
 
   // 리뷰 상태
   const [isSaved, setIsSaved] = useState(false);     // 서버에 리뷰가 존재하는가
-  const [isEditing, setIsEditing] = useState(false); // 편집 모드 여부(수정하기 눌렀을 때 true)
+  const [isEditing, setIsEditing] = useState(false); // 편집 모드 여부
   const [menuOpen, setMenuOpen] = useState(false);
 
   // API 상태
@@ -59,27 +60,28 @@ export default function MyReview() {
     if (/음식|식당|맛집|카페|restaurant|food/.test(hay)) return "food";
     if (/숙소|숙박|호텔|모텔|리조트|펜션|게스트|호스텔|풀빌라|stay|hotel|motel|resort|pension|guest/.test(hay)) return "stay";
 
-    // 알 수 없으면 낮은 우선순위로 분류하지 말고 일단 top으로 취급 (이미지 후보 늘리기 위함)
     return "top";
   }
 
   function pickHeroFromCourse(c) {
-    if (!c) return regionImg;
+    // 코스/장소가 없거나 유효 이미지가 하나도 없으면 대체 이미지로
+    if (!c) return replaceDetail;
 
     const places = (c?.days ?? []).flatMap(d => d?.places ?? []);
-    if (!places.length) return regionImg;
+    if (!places.length) return replaceDetail;
 
     const bucket = { top: [], food: [], stay: [] };
 
     for (const p of places) {
-      // 다양한 필드 호환
-      const img =
-        (p?.imgUrl ??
-         p?.image ??
-         p?.firstimage ??
-         p?.firstimage2 ??
-         "").trim();
+      const img = String(
+        p?.imgUrl ??
+        p?.image ??
+        p?.firstimage ??
+        p?.firstimage2 ??
+        ""
+      ).trim();
 
+      // VisitKorea CMS 이미지가 아니면 스킵
       if (!isVKImage(img)) continue;
 
       const group = classifyPlace(p);
@@ -92,12 +94,14 @@ export default function MyReview() {
     if (bucket.top.length) return pick(bucket.top);
     if (bucket.food.length) return pick(bucket.food);
     if (bucket.stay.length) return pick(bucket.stay);
-    return regionImg;
+
+    // 유효 이미지가 하나도 없으면 상세 대체 이미지
+    return replaceDetail;
   }
 
-  // 요구사항대로: 모든 일자 places에서 VK 이미지 우선순위로 선택
   const heroImg = useMemo(() => pickHeroFromCourse(course), [course]);
 
+  /* ================= 상세 + 리뷰 조회 ================= */
   useEffect(() => {
     async function fetchDetail() {
       setLoading(true);
@@ -106,6 +110,7 @@ export default function MyReview() {
         const token = localStorage.getItem("accessToken");
         if (!token) throw new Error("로그인 토큰이 없습니다.");
 
+        // 코스 상세 (예정/기록 공용 상세 API로 교체 가능하면 교체)
         const res = await fetch(`https://smartzoo.shop/recommend/saved/upcoming/${id}`, {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
@@ -126,12 +131,6 @@ export default function MyReview() {
 
         const firstDay = data?.course?.days?.[0]?.day;
         if (typeof firstDay === 'number') setSelectedDay(firstDay);
-
-        if (data?.reviewContent) {
-          setReviewText(data.reviewContent);
-          setIsSaved(true);
-          setIsEditing(false);
-        }
       } catch (e) {
         setErr(e instanceof Error ? e.message : "알 수 없는 오류");
       } finally {
@@ -139,7 +138,45 @@ export default function MyReview() {
       }
     }
 
-    fetchDetail();
+    if (id) fetchDetail();
+  }, [id]);
+
+  // 저장된 리뷰 가져오기 (후기 작성완료로 들어온 경우 포함)
+  useEffect(() => {
+    async function fetchReview() {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) throw new Error("로그인 토큰이 없습니다.");
+
+        const res = await fetch(`https://smartzoo.shop/reviews/saved/${id}`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.status === 404) {
+          // 리뷰 없음 → 작성 가능
+          setIsSaved(false);
+          setIsEditing(false);
+          setReviewText("");
+          return;
+        }
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          throw new Error(data?.message || `리뷰 조회 실패 (status ${res.status})`);
+        }
+
+        const data = await res.json(); // 예시 응답 형태 사용
+        setReviewText(data?.content || "");
+        setIsSaved(true);     // 리뷰 있음
+        setIsEditing(false);  // 읽기 모드
+      } catch (e) {
+        // 토큰 문제 등 치명적 오류가 아니면 화면은 계속 보이게
+        console.error(e);
+      }
+    }
+
+    if (id) fetchReview();
   }, [id]);
 
   const periodText = useMemo(() => {
@@ -147,7 +184,7 @@ export default function MyReview() {
     return null;
   }, [svdStartDate, svdEndDate]);
 
-  // 저장(작성/수정) 공통 핸들러
+  /* ================= 저장/수정/삭제 ================= */
   async function handleSaveReview() {
     try {
       const token = localStorage.getItem("accessToken");
@@ -173,7 +210,7 @@ export default function MyReview() {
 
       alert(isUpdate ? "리뷰 수정 완료!" : "리뷰 작성 완료!");
       setIsSaved(true);
-      setIsEditing(false);
+      setIsEditing(false); // 저장 후 읽기 모드
       setMenuOpen(false);
     } catch (e) {
       alert(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
@@ -184,7 +221,7 @@ export default function MyReview() {
     setIsEditing(true);
     setMenuOpen(false);
     setTimeout(() => textareaRef.current?.focus(), 0);
-    }
+  }
 
   async function handleDeleteReview() {
     const ok = window.confirm("리뷰를 삭제하시겠습니까?");
@@ -226,7 +263,7 @@ export default function MyReview() {
         {!loading && !err && course && (
           <>
             <div className='review-main-image'>
-              <img src={heroImg} alt="대표 이미지" />
+              <img src={replaceDetail} alt="대표 이미지" />
 
               {/* 저장 / 수정 저장 버튼 */}
               {(!isSaved || isEditing) ? (
@@ -295,7 +332,7 @@ export default function MyReview() {
                     <div key={day.day} className="places-grid">
                       {(day.places ?? []).map((place, idx) => (
                         <div className='review-detail-course-info' key={`${place.placeName ?? place.title ?? idx}-${idx}`}>
-                          <img src={place.imgUrl || place.firstimage || place.firstimage2 || regionImg} alt={place.placeName ?? place.title ?? '장소'} />
+                          <img src={place.imgUrl || place.firstimage || place.firstimage2} alt={place.placeName ?? place.title ?? '장소'} />
                           <div className='course-info-text'>
                             <span>{place.placeName ?? place.title}</span>
                             {place.address && <span>{place.address}</span>}

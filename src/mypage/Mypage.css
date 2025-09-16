@@ -138,6 +138,7 @@
     text-align: center;
     border: none;
     color: #FFFFFF;
+    cursor: pointer;
 }
 
 .record-course-detail{
@@ -324,4 +325,9 @@
     font-size: 24px;
     text-align: center;
     border: none;
+}
+
+.record-two-button .record-write-review.reviewed {
+    background-color: #8F959B;
+    cursor: pointer;
 }

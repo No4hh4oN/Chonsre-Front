@@ -9,6 +9,7 @@ import CoursePick from './coursePick/CoursePick.jsx';
 import CourseDetail from './coursePick/CourseDetail.jsx';
 import Mypage from './mypage/Mypage.jsx';
 import MyReview from './mypage/MyReview.jsx';
+import DetailSaveCourse from "./mypage/DetailSaveCourse.jsx"
 
 
 
@@ -23,6 +24,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/CourseDetail/:id" element={<CourseDetail />} />
         <Route path="/mypage" element={<Mypage />} />
         <Route path="/myReview/:id" element={<MyReview />} />
+        <Route path="/DetailSaveCourse/:id" element={<DetailSaveCourse />} />
       </Routes>
       </BrowserRouter>
   </StrictMode >,

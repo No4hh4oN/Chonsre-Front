@@ -6,7 +6,7 @@ import './Mypage.css';
 import editProfile from "/icons/editProfile.png";
 import profile from '/icons/default.png';
 import editcourse from '/icons/editCourse.png';
-import edit from '/icons/edit.png';
+import replaceCourse from "/images/replaceCourse.png";
 import coursedelete from '/icons/delete.png';
 import Modal from "react-modal";
 import ProfileEditModal from "../components/profileModal"; 
@@ -50,12 +50,16 @@ export default function Mypage() {
     "/images/place.png",
   ]);
 
+  // 대표 이미지 선택 로직
   function pickDisplayImage(url) {
-    if (!url || typeof url !== "string") return "";
+    if (!url || typeof url !== "string") return replaceCourse;
     const u = url.trim();
-    if (BLOCKED_LOCAL_IMAGES.has(u)) return "";
+    if (BLOCKED_LOCAL_IMAGES.has(u)) return replaceCourse;
+
+    // VisitKorea CMS 도메인만 허용
     if (ALLOWED_IMG_HOST.test(u)) return u;
-    return "";
+    // 그 외는 전부 대체 이미지로
+    return replaceCourse;
   }
 
   // 여행기간 → "당일치기 코스" 또는 "N박M일 코스"로 변환
@@ -105,8 +109,6 @@ export default function Mypage() {
     return raw || "코스";
   }
 
-
-
   // ===== Utils =====
   function loadProfileFromStorage() {
     try {
@@ -120,17 +122,17 @@ export default function Mypage() {
     }
   }
   // 시작일이 오늘(로컬 자정)보다 이전이면 과거로 간주
-  function isPastByStartDate(svdStartDateStr) {
-    if (!svdStartDateStr) return false;
-    const [y, m, d] = svdStartDateStr.split("-").map(Number);
-    if (!y || !m || !d) return false;
+  // function isPastByStartDate(svdStartDateStr) {
+  //   if (!svdStartDateStr) return false;
+  //   const [y, m, d] = svdStartDateStr.split("-").map(Number);
+  //   if (!y || !m || !d) return false;
 
-    const today = new Date();
-    const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0,0,0,0).getTime();
-    const startMid = new Date(y, m - 1, d, 0,0,0,0).getTime();
+  //   const today = new Date();
+  //   const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0,0,0,0).getTime();
+  //   const startMid = new Date(y, m - 1, d, 0,0,0,0).getTime();
 
-    return startMid < todayMid;
-  }
+  //   return startMid < todayMid;
+  // }
   
   // 리뷰 작성여부
   useEffect(() => {
@@ -185,6 +187,7 @@ export default function Mypage() {
         throw new Error(data?.message || `예정 코스 조회 실패 (status ${res.status})`);
       }
       const list = await res.json();
+      console.log("comming API response:", list);
       window.__lastUpcoming = list;
       setUpcoming(Array.isArray(list) ? list : []);
     } catch (e) {
@@ -211,6 +214,7 @@ export default function Mypage() {
         throw new Error(data?.message || `코스 기록 조회 실패 (status ${res.status})`);
       }
       const list = await res.json();
+      console.log("past API response:", list);
       window.__lastPast = list;
       setRecords(Array.isArray(list) ? list : []);
     } catch (e) {
@@ -245,6 +249,52 @@ export default function Mypage() {
       fetchPastRecords();
     }
   }, [activeTab]);
+
+
+  // ================= 코스 삭제 =================
+  async function handleDeleteSaved(savedId) {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) throw new Error("로그인 토큰이 없습니다.");
+
+      // 1) 리뷰 선삭제
+      try {
+        const delReview = await fetch(`https://smartzoo.shop/reviews/saved/${savedId}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        // 404는 리뷰 없음 → 무시
+        if (!delReview.ok && delReview.status !== 404) {
+          const msg = await delReview.text().catch(() => "");
+          console.log("DELETE review failed:", delReview.status, msg);
+        }
+      } catch (e) {
+        console.log(e);
+      }
+
+      // 2) 코스 삭제
+      const res = await fetch(`https://smartzoo.shop/recommend/saved/${savedId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const msg = await res.text().catch(() => "");
+        throw new Error(msg || `코스 삭제 실패 (status ${res.status})`);
+      }
+
+      // 성공:현재 탭에 따라 목록에서 제거
+      if (activeTab === 'records') {
+        setRecords((prev) => prev.filter((x) => x.savedId !== savedId));
+      } else if (activeTab === 'scheduled') {
+        setUpcoming((prev) => prev.filter((x) => x.savedId !== savedId));
+      }
+
+      setOpenMenuId(null); // 메뉴 닫기
+      alert("코스가 삭제되었습니다.");
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
+    }
+  }
 
   // ===== 회원탈퇴 =====
   const handleDelCancel = () => {
@@ -311,7 +361,7 @@ export default function Mypage() {
               {records.map((item) => {
                 const period = `${item.svdStartDate} - ${item.svdEndDate}`;
                 const displayTitle = formatCourseTitle(item);
-                const imgUrl = pickDisplayImage(item.accommodationImgUrl || '');
+                const imgUrl = pickDisplayImage(item.courseImgUrl || '');
 
                 const canReview = !!item.canReview;
                 const reviewed = !!item.hasReview;
@@ -359,17 +409,15 @@ export default function Mypage() {
                       >
                         {reviewed ? '후기 작성완료' : '후기 작성하기'}
                       </button>
-
                       <button
                         className='record-course-detail'
                         onClick={() => {
-                          navigator(`/myReview/${item.savedId}`, {
+                          navigator(`/DetailSaveCourse/${item.savedId}`, {
                             state: {
                               svdStartDate: item.svdStartDate,
                               svdEndDate: item.svdEndDate,
                               title: item.title,
-                              accommodationName: item.accommodationName,
-                              accommodationImgUrl: item.accommodationImgUrl,
+                              courseImgUrl: item.courseImgUrl,
                             },
                           });
                         }}
@@ -380,12 +428,16 @@ export default function Mypage() {
 
                     {openMenuId === item.savedId && (
                       <div className="record-menu" onClick={(e) => e.stopPropagation()} role="menu">
-                        <div className="record-menu-delete">
+                        <button
+                          className="record-menu-delete"
+                          onClick={() => handleDeleteSaved(item.savedId)}
+                        >
                           <img src={coursedelete} alt="삭제" />
                           삭제하기
-                        </div>
+                        </button>
                       </div>
                     )}
+
                   </div>
                 );
               })}
@@ -408,7 +460,7 @@ export default function Mypage() {
                 const dday = calcDDay(item.svdStartDate);
                 const period = `${item.svdStartDate} - ${item.svdEndDate}`;
                 const displayTitle = formatCourseTitle(item);
-                const imgUrl = pickDisplayImage(item.accommodationImgUrl || '');
+                const imgUrl = pickDisplayImage(item.courseImgUrl || '');
 
                 return (
                   <div key={item.savedId} className='record-box'>
@@ -441,13 +493,12 @@ export default function Mypage() {
                       <button
                         className='record-course-detail-2'
                         onClick={() => {
-                          navigator(`/myReview/${item.savedId}`, {
+                          navigator(`/DetailSaveCourse/${item.savedId}`, {
                             state: {
                               svdStartDate: item.svdStartDate,
                               svdEndDate: item.svdEndDate,
                               title: item.title,
-                              accommodationName: item.accommodationName,
-                              accommodationImgUrl: item.accommodationImgUrl,
+                              courseImgUrl: item.courseImgUrl,
                             },
                           });
                         }}
@@ -461,11 +512,14 @@ export default function Mypage() {
                         className="record-menu"
                         onClick={(e) => e.stopPropagation()}
                         role="menu"
-                      > 
-                      <button className="record-menu-delete">
-                        <img src={coursedelete} alt="삭제" />
-                        삭제하기
-                      </button>
+                      >
+                        <button
+                          className="record-menu-delete"
+                          onClick={() => handleDeleteSaved(item.savedId)}
+                        >
+                          <img src={coursedelete} alt="삭제" />
+                          삭제하기
+                        </button>
                       </div>
                     )}
                   </div>

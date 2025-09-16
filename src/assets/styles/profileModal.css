@@ -1,0 +1,149 @@
+.ProfileEdit-modal {
+    width: 658px;
+    height: 779px;
+    border-radius: 30px;
+    background-color: #FFFFFF;
+    /* 중앙 배치 */
+    position: fixed;      
+    top: 50%;             
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: none;
+    outline: none;
+    box-sizing: border-box;
+    padding: 10px;
+}
+
+.modal-profile-edit-top{
+    display: flex;
+    flex-direction: column;
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    color: #2C2F33;
+    font-size: 36px;
+    gap: 25px;
+    margin-top: 40px;
+    margin-left: 40px;
+}
+
+.modal-profile-edit-top span{
+    font-size: 28px;
+}
+
+.modal-profile-img-edit img{
+    width: 202px;
+    height: 202px;
+    border-radius: 50%;
+}
+
+.modal-profile-img-edit{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-left: 30px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.modal-profile-img-buttons{
+    margin-top: 100px;
+    margin-left: 40px;
+}
+
+.modal-profile-img-buttons button:first-child {
+    width: 165px;
+    height: 67px;
+    border-radius: 14px;
+    border: 2px solid #8F959B;
+    font-family: 'Pretendard-Medium';
+    font-weight: 500;
+    font-size: 20px;
+    text-align: center;
+    background-color: #ffffff;
+    color: #2C2F33;
+    margin-right: 20px;
+}
+
+.modal-profile-img-buttons button:last-child {
+    width: 125px;
+    height: 67px;
+    border-radius: 14px;
+    cursor: pointer;
+    border: 2px solid #D3D8DE;
+    background-color: #ffffff;
+    font-family: 'Pretendard-Medium';
+    font-weight: 500;
+    font-size: 20px;
+    text-align: center;
+    color: #8F959B;
+}
+
+.modal-nickname-box{
+    display: flex;
+    flex-direction: column;
+    margin-top: 30px;
+    margin-left: 40px;
+}
+
+.modal-nickname-box span{
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 28px;
+    color: #2C2F33;
+}
+
+.modal-nickname-box input{
+    width: 552px;
+    height: 75px;
+    border-radius: 14px;
+    background-color: #F3F5F7;
+    border: none;
+    margin-top: 30px;
+    outline: none;
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 24px;
+    color: #2C2F33;
+    padding-left: 30px;
+}
+
+.modal-nickname-box input::placeholder{
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 24px;
+    color: #2C2F33;
+}
+
+.modal-edit-finish-buttons{
+    margin-top: 90px;
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    margin-left: 40px;
+}
+
+.modal-edit-finish-buttons button:first-child{
+    width: 265px;
+    height: 75px;
+    border-radius: 14px;
+    background-color: #F3F5F7;
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 24px;
+    text-align: center;
+    color: #656B70;
+    border: none;
+}
+
+.modal-edit-finish-buttons button:last-child{
+    width: 265px;
+    height: 75px;
+    border-radius: 14px;
+    background-color: #3AC581;
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 24px;
+    text-align: center;
+    color: #FFFFFF;
+    border: none;
+}

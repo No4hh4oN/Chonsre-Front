@@ -1,0 +1,198 @@
+.CoursePick{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.pick-title-container{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 550px;
+    margin-top: 10px;
+}
+.pick-title{
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 40px;
+    line-height: 50px;
+    color: #000000;
+    margin-top: 170px;
+}
+.pick-title span{
+    color: #3AC581;
+}
+.pick-title-container img{
+    width: 393px;
+    height: 344px;
+}
+
+/* 드롭다운 */
+.pick-dropdown{
+    width: 1200px;
+    height: 139px;
+    border-radius: 20px;
+    background-color: #F3F5F7;
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 22px;
+    color: #656B70;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 70px;
+    margin-top: 20px;
+}
+
+.pick-dropdown-box{
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    align-items: center;
+}
+.dropdown-arrow{
+    width: 22px;
+    height: 12px;
+}
+
+.pick-type-dropdown ,.pick-style-dropdown,.pick-period-dropdown{
+    position: relative;
+    width: 133px;
+    height: 60px;
+    border-radius: 16px;
+    /* padding: 17px 23px; */
+    gap: 10px;
+    background-color: #FFFFFF;
+}
+.pick-style-dropdown{
+    width: 189px;
+}
+.pick-period-dropdown{
+    width: 156px;
+}
+
+.pick-dropdown-menu {
+    position: absolute;
+    top: 65%;
+    width: calc(100% - 55px);
+    background-color: #ffffff;
+    border-radius: 16px;
+    margin-top: 30px;
+    padding: 17px 29px 17px 26px  
+}
+.pick-dropdown-item{
+    color: #B5BCC3;
+    margin-top: 17px;
+}
+
+.pick-dropdown button{
+    width: 194px;
+    height: 60px;
+    border-radius: 12px;
+    background-color: #3AC581;
+    border: none;
+    font-family: 'Pretendard-SemiBold';
+    font-weight: 600;
+    font-size: 20px;
+    text-align: center;
+    color: #ffffff;
+    margin-left: 250px;
+}
+
+.pick-type-dropdown-menu-top{
+    text-align: center;
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+/* 추천코스 */
+.pick-course-contents{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 가로 4개 */
+    gap: 75px 30.67px;
+    margin-top: 70px;
+}
+.pick-course-contents img{
+    width: 277px;
+    height: 277px;
+    border-radius: 16px;
+}
+.course-period{
+    width: 92px;
+    height: 36px;
+    border-radius: 30px;
+    color: #ffffff;
+    background-color: #FFAF12;
+    font-family: 'Pretendard-Medium';
+    font-weight: 500;
+    font-size: 16px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 15px;
+}
+.course-region{
+    font-family: 'Pretendard--SemiBold';
+    font-weight: 600;
+    font-size: 24px;
+    color: #2C2F33;
+}
+.pick-course-contents span{
+    font-family: 'Pretendard-Medium';
+    font-weight: 500;
+    font-size: 18px;
+    color: #8F959B;
+}
+
+/* 하단 숫자 바*/
+.pagination{
+    font-family: 'Pretendard-Medium';
+    font-weight: 500;
+    font-size: 18px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    gap: 20px;
+    margin-top: 100px;
+    margin-bottom: 100px;
+}
+.pagination-arrow img {
+    width: 16px;
+    height: 29px;
+    cursor: pointer;
+}
+.pagination-arrow {
+    background: none;     
+    border: none;         
+    padding: 0;           
+    cursor: pointer;
+}
+.pagination-numbers {
+    display: flex;
+    gap: 5px; 
+}
+.pagination-button {
+    background-color: #E7ECF1; 
+    width: 40px;
+    height: 46px;
+    border-radius: 6px;
+    color: #8F959B;
+    border: none;
+    cursor: pointer;
+}
+.pagination-button.active {
+    background-color: #4ec27f;
+    color: #ffffff;
+}
+.pagination-button:hover:not(.active) {
+  background-color: #e0e0e0;   /* hover 시 살짝 진한 회색 */
+}

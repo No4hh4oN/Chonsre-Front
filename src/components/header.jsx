@@ -77,7 +77,7 @@ export default function Header() {
         <div className='Header_Title' onClick={() => navigator('/')}>촌스레</div>
         <div className='Header_Category'>
           <div id='create' className='Header_NavItem' onClick={() => navigator('/Generator')}>코스 만들기</div>
-          <div id='recommand' className='Header_NavItem'>추천 코스</div>
+          <div id='recommand' className='Header_NavItem'onClick={() => navigator('/CoursePick')}>추천 코스</div>
 
           {isLoggedIn ? (
             <div

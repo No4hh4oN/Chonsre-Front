@@ -1,9 +1,10 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import Modal from 'react-modal';
 import AxiosClient, { setAuthToken } from "../AxiosClient";
 import Header from "../components/header";
-import moutainIcon from '/icons/mountain.png';
+// import moutainIcon from '/icons/mountain.png';
 import dropdown2 from '/icons/dropdown2.png';
 import scope from '/icons/scope.png';
 
@@ -202,6 +203,7 @@ export default function Generator() {
             const res = await AxiosClient.get('/auth/me');
             setNickname(res.data.nickname);
         } catch (error) {
+            console.error(error)
         }
     }
 
@@ -383,7 +385,7 @@ export default function Generator() {
                 shouldCloseOnOverlayClick={false}
                 shouldCloseOnEsc={false}
             >
-                <img className="moutainIcon" src={moutainIcon} alt="산아이콘" />
+                {/* <img className="moutainIcon" src={moutainIcon} alt="산아이콘" /> */}
                 <div className="loadingText">
                     {nickname || "사용자"}님을 위한 <span className="loadingText_highlight">전남의 촌캉스 지역</span>을 고르고 있어요…
                 </div>

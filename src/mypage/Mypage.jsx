@@ -322,15 +322,7 @@ async function fetchPastRecords() {
                       <button
                         className='record-course-detail'
                         onClick={() => {
-                          navigator(`/myReview/${item.savedId}`, {
-                            state: {
-                              svdStartDate: item.svdStartDate,
-                              svdEndDate: item.svdEndDate,
-                              title: item.title,
-                              accommodationName: item.accommodationName,
-                              accommodationImgUrl: item.accommodationImgUrl,
-                            },
-                          });
+                          navigator(`/CourseEditor`);
                         }}
                       >
                         코스 자세히 보기

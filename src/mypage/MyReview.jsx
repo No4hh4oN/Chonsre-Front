@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import Header from "../components/header";
 import './MyReview.css';
-import regionImg from "/images/BgImg3.png";
+import regionImg from "/images/BgImg3.webp";
 import editcourse from '/icons/editCourse.png';
 import edit from '/icons/edit.png';
 import coursedelete from '/icons/delete.png';

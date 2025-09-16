@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import AxiosClient, { setAuthToken } from "../AxiosClient";
@@ -56,10 +57,13 @@ export default function CourseEditor() {
   const infoRef = useRef(null); // 단일 InfoWindow 재사용
 
   useEffect(() => {
+
     const groupId = localStorage.getItem("groupId");
     const token = localStorage.getItem("accessToken");
 
     if (!groupId || !token) {
+      alert("비정상적인 접근입니다.");
+      navigator(-1); // 한 단계만 뒤로
       setLoading(false);
       return;
     }
@@ -198,6 +202,8 @@ export default function CourseEditor() {
         : null,
   });
 
+
+  // 전체 수정 저장
   const saveEdit = async () => {
     try {
       setSaving(true);
@@ -241,6 +247,30 @@ export default function CourseEditor() {
       setSaving(false);
     }
   };
+
+  // 제목만 수정
+  const saveTitleEdit = async () => {
+  commitTitle(); // 로컬 상태 업데이트
+
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (token) setAuthToken(token);
+
+    const currentCourse = courses[selectedCourse];
+    if (!currentCourse?.courseId) return;
+
+    const payload = buildCoursePayload(currentCourse); // days 그대로 포함됨
+    await AxiosClient.put(`/recommend/courses/${currentCourse.courseId}`, payload, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    alert("제목이 저장되었습니다.");
+  } catch (err) {
+    alert("제목 저장에 실패했습니다.");
+  }
+};
+
+
 
   // Kakao 스크립트 로더
   useEffect(() => {
@@ -455,12 +485,6 @@ export default function CourseEditor() {
 
       // 응답 예: { savedId, courseId, groupId }
       const { savedId, courseId, groupId } = res.data || {};
-
-      localStorage.setItem(
-        "lastSavedCourse",
-        JSON.stringify({ savedId, courseId, groupId, savedAt: new Date().toISOString() })
-      );
-
       navigator('/Success');
     } catch (err) {
       console.error("코스 확정(저장) 실패:", err);
@@ -553,7 +577,7 @@ export default function CourseEditor() {
       });
 
       const list = Array.isArray(res?.data?.results) ? res.data.results : [];
-      setSearchResults(list); // 결과 모달 열기
+      setSearchResults(list);
     } catch (e) {
       console.error(e);
       setSearchError("검색 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
@@ -580,7 +604,7 @@ export default function CourseEditor() {
                     value={titleDraft}
                     onChange={(e) => setTitleDraft(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") { e.preventDefault(); commitTitle(); }
+                      if (e.key === "Enter") { e.preventDefault(); commitTitle(); saveTitleEdit(); }
                       else if (e.key === "Escape") { e.preventDefault(); cancelTitleEdit(); }
                     }}
                     onBlur={commitTitle}
@@ -827,27 +851,27 @@ export default function CourseEditor() {
           )}</div>
           <img className="closeModalIcon" src={closeModal} alt="close" onClick={() => setSearchOpen(false)} />
         </div>
-          {searchLoading && <span>검색 중...</span>}
-          {!searchLoading && searchError && <span>{searchError}</span>}
-          {!searchLoading && !searchError && (
-            <div className="SearchModal_Results">
-              {searchResults.length > 0 ?
-                <>
-                  {searchResults.map((r, idx) => (
-                    <div className="SearchedTourlist" key={`${r.placeName}-${idx}`}>
-                      <div className="SearchedTourInfo">
-                        <img
-                          className="tourlistImg"
-                          src={r.imgUrl || defaultImg}
-                          alt={r.placeName}
-                        />
-                        <div className="tourlistText">
-                          <div id="placeName">{r.placeName}</div>
-                          <div id="description">{r.description || "관광지"}</div>
-                        </div>
+        {searchLoading && <span>검색 중...</span>}
+        {!searchLoading && searchError && <span>{searchError}</span>}
+        {!searchLoading && !searchError && (
+          <div className="SearchModal_Results">
+            {searchResults.length > 0 ?
+              <>
+                {searchResults.map((r, idx) => (
+                  <div className="SearchedTourlist" key={`${r.placeName}-${idx}`}>
+                    <div className="SearchedTourInfo">
+                      <img
+                        className="tourlistImg"
+                        src={r.imgUrl || defaultImg}
+                        alt={r.placeName}
+                      />
+                      <div className="tourlistText">
+                        <div id="placeName">{r.placeName}</div>
+                        <div id="description">{r.description || "관광지"}</div>
                       </div>
+                    </div>
 
-                        {/* <button
+                    {/* <button
                   variant="outline"
                   size="sm"
                   onClick={() => focusPlace({
@@ -858,16 +882,16 @@ export default function CourseEditor() {
                 >
                   미리보기
                 </button> */}
-                      <button className="addTourlist" onClick={() => addPlaceFromSearch(r)}>
-                        +
-                      </button>
-                    </div>
-                  ))}
-                </>
-                :
-                "결과가 없습니다."}
-            </div>
-          )}
+                    <button className="addTourlist" onClick={() => addPlaceFromSearch(r)}>
+                      +
+                    </button>
+                  </div>
+                ))}
+              </>
+              :
+              "결과가 없습니다."}
+          </div>
+        )}
 
 
       </Modal>

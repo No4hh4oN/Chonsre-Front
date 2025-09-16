@@ -3,7 +3,7 @@ import Header from "../components/header";
 import carrier from "/images/carrier.png";
 import pickdrop from "/images/dropdown-up.png";
 import pickdowndrop from "/images/dropdown-down.png";
-import regionImg from "/images/BgImg2.png";
+import regionImg from "/images/BgImg2.webp";
 import backarrow from "/images/arrow-back.png";
 import nextarrow from "/images/arrow-next.png";
 import { useState } from "react";

@@ -3,7 +3,7 @@ import Header from "../components/header";
 import { useState, useEffect, useRef, useMemo } from "react";
 import "./CourseDetail.css";
 import { useLocation, useParams } from "react-router-dom";
-import regionImg from "/images/BgImg2.png";
+import regionImg from "/images/BgImg2.webp";
 import placeIcon from "/images/placeIcon.png";
 import axios from "axios";
 

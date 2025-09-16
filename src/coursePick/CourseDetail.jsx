@@ -374,22 +374,12 @@ const forceIdaEnding = (s) => {
   return x;
 };
 
-// 공백 포함 420~450자로 보정
 const clampLength = (raw) => {
-  let s = raw.replace(/\n+/g, " ").replace(/\s+/g, " ").trim();
-  if (s.length > 450) {
-    s = s.slice(0, 450).replace(/\s+$/g, "");
-    const lastIda = s.lastIndexOf("이다.");
-    if (lastIda >= 380) s = s.slice(0, lastIda + 3);
-    else s = forceIdaEnding(s);
-  }
-  if (s.length < 420) {
-    const pad = " 지역의 역사·지형·접근성, 운영 현황과 이용 팁을 함께 고려하면 방문 동선과 체류 시간을 효율화할 수 있다.";
-    s = (s + (s.endsWith(" ") ? "" : " ") + pad).trim();
-    if (s.length > 450) s = s.slice(0, 450).trim();
-    s = forceIdaEnding(s);
-  }
-  return forceIdaEnding(s);
+  return raw
+    .replace(/\n+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 500);
 };
 
 async function generatePlaceDescription(it, region) {
@@ -404,7 +394,8 @@ async function generatePlaceDescription(it, region) {
   abortRef.current = ctrl;
 
   const system =
-    "너는 한국 관광 전문 큐레이터이다. 답변은 반드시 한국어로 하고, 모든 문장을 '이다.'로 끝내라. 사실과 다른 정보나 과장 금지. 실제로 해당 장소의 핵심 정보를 구조적으로 설명하라. 설명은 한 단락만 출력하고 공백 포함 420~450자로 제한하라. 스타일: 간결·객관·정보지향. 존댓말 금지. 감탄사 금지.";
+    "너는 한국 관광 전문 큐레이터이다. 답변은 반드시 한국어로 하고, 모든 문장을 '~다.' 체로 끝내라. 사실과 다른 정보나 과장 금지. 실제로 해당 장소의 핵심 정보를 구조적으로 설명하라. 설명은 한 단락만 출력하고 공백 포함 450~500자로 제한하라. 스타일: 간결·객관·정보지향. 존댓말 금지. 감탄사 금지.";
+
 
   const user = [
     `장소명: ${title}`,
@@ -412,9 +403,11 @@ async function generatePlaceDescription(it, region) {
     region ? `지역 힌트: ${region}` : "",
     category ? `분류: ${category}` : "",
     "",
-    "반드시 단락 1개, 공백 포함 420~450자, 모든 문장 어미는 '이다.'로 작성하라.",
+    "반드시 단락 1개, 공백 포함 450~500자, 모든 문장 어미는 '~다.'로 작성하라.",
     "포함 요소 예시: 대표 볼거리/특징, 자연·문화·역사적 맥락, 접근성(대략), 이용 포인트·주요 동선, 계절 포인트(있다면).",
   ].join("\n");
+
+  
 
   try {
     setDescLoadingKey(placeKeyOf(it));
@@ -924,7 +917,7 @@ useEffect(() => {
         .filter((it) => it && it.title)
         .map((it) => ({
           placeName: it.title || "",
-          description: "", // 설명은 비움
+          description: "", // 설명 비움
           address: it.address || "",
           imgUrl: imageFor(it) || "",
         })),
@@ -952,7 +945,7 @@ useEffect(() => {
   async function handleSaveCourse() {
     try {
       if (saving) return;
-      const token = localStorage.getItem("accesToken") || localStorage.getItem("accessToken");
+      const token = localStorage.getItem("accessToken");
       if (!token) {
         window.alert("로그인이 필요합니다. (토큰이 없습니다)");
         return;

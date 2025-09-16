@@ -76,10 +76,11 @@
 .info-period-course{
     display: flex;
     flex-direction: row;
-    gap: 100px;
-    margin-left: 110px;
+    gap: 47px;
+    margin-left: 40px;
     margin-top: 30px;
     margin-bottom: 10px;
+    cursor: pointer;
 }
 
 .review-detail-course-info{
@@ -103,6 +104,8 @@
     font-weight: 500;
     font-size: 16px;
     color: #B5BCC3;
+    width: 200px;
+    margin-top: 7px;
 }
 .places-grid{
     margin-left: 25px;
@@ -193,4 +196,8 @@
     align-items: center;
     gap: 10px;
     margin-right: 10px;
+}
+
+.info-period-course span.active {
+    color: #2C2F33; 
 }

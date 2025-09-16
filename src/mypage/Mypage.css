@@ -97,7 +97,6 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    gap: 10px;
     margin-bottom: 40px;
     position: relative;
 }
@@ -117,7 +116,7 @@
     font-family: 'Pretendard-SemiBold';
     font-weight: 600;
     font-size: 24px;
-    width: 290px;
+    width: 310px;
     color: #2C2F33;
 }
 .record-course-period{
@@ -220,23 +219,23 @@
     right: 12px;
     top: 45px;
 }
-.record-menu-edit img{
+/* .record-menu-edit img{
     width: 26px;
     height: 26px;
-}
+} */
 .record-menu-delete img{
     width: 26px;
     height: 26px;
 }
 
-.record-menu-edit{
+/* .record-menu-edit{
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 10px;
     color: #656B70;
     margin-right: 10px;
-}
+} */
 .record-menu-delete{
     color: #F66A6A;
     display: flex;
@@ -244,6 +243,12 @@
     align-items: center;
     gap: 10px;
     margin-right: 10px;
+    background-color: #ffffff;
+    border: none;
+    font-family: 'Pretendard- Medium';
+    font-weight: 500;
+    outline: none;
+    font-size: 18px;
 }
 
 

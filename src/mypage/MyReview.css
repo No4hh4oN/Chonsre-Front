@@ -188,6 +188,9 @@
     gap: 10px;
     color: #656B70;
     margin-right: 10px;
+    background-color: #ffffff;
+    border: none;
+    outline: none;
 }
 .review-menu-delete{
     color: #F66A6A;
@@ -196,6 +199,9 @@
     align-items: center;
     gap: 10px;
     margin-right: 10px;
+    background-color: #ffffff;
+    border: none;
+    outline: none;
 }
 
 .info-period-course span.active {

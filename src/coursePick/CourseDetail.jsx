@@ -4,6 +4,9 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import "./CourseDetail.css";
 import { useLocation, useParams } from "react-router-dom";
 import regionImg from "/images/BgImg2.png";
+import foodImg from "/images/food.png";
+import placeImg from "/images/place.png";
+import sleepImg from "/images/sleep.png";
 import placeIcon from "/images/placeIcon.png";
 import axios from "axios";
 
@@ -396,7 +399,6 @@ async function generatePlaceDescription(it, region) {
   const system =
     "너는 한국 관광 전문 큐레이터이다. 답변은 반드시 한국어로 하고, 모든 문장을 '~다.' 체로 끝내라. 사실과 다른 정보나 과장 금지. 실제로 해당 장소의 핵심 정보를 구조적으로 설명하라. 설명은 한 단락만 출력하고 공백 포함 450~500자로 제한하라. 스타일: 간결·객관·정보지향. 존댓말 금지. 감탄사 금지.";
 
-
   const user = [
     `장소명: ${title}`,
     address ? `주소: ${address}` : "",
@@ -406,8 +408,6 @@ async function generatePlaceDescription(it, region) {
     "반드시 단락 1개, 공백 포함 450~500자, 모든 문장 어미는 '~다.'로 작성하라.",
     "포함 요소 예시: 대표 볼거리/특징, 자연·문화·역사적 맥락, 접근성(대략), 이용 포인트·주요 동선, 계절 포인트(있다면).",
   ].join("\n");
-
-  
 
   try {
     setDescLoadingKey(placeKeyOf(it));
@@ -457,7 +457,6 @@ useEffect(() => {
   generatePlaceDescription(it, courseInfo.region);
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [currentPlace]);
-
 
   // 일수 계산
   function daysFromPeriod(period = "") {
@@ -865,17 +864,25 @@ useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days, selectedDay]);
 
-  // ================== 이미지 선택 로직 ==================
-  const imageFor = (item) => {
-    if (!item) return regionImg;
-    if (imgIndex) {
-      const hit = getTourImageFor(item, imgIndex);
-      if (hit) return hit;
-    }
-    return regionImg;
+  /* ================== 이미지 선택 로직 (수정 지점) ================== */
+  const categoryPlaceholder = (item) => {
+    const cat = (item?.category || "").trim();
+    if (cat.includes("음식")) return foodImg;
+    if (cat.includes("숙소") || cat.includes("숙박")) return sleepImg;
+    // '관광지', '체험', '장소' 등은 모두 placeImg
+    return placeImg;
   };
 
-  // 메인 히어로 이미지
+  const imageFor = (item) => {
+    if (!item) return placeImg; // 기본 플레이스홀더
+    if (imgIndex) {
+      const hit = getTourImageFor(item, imgIndex);
+      if (hit) return hit; // 실사 이미지 우선
+    }
+    return categoryPlaceholder(item); // 카테고리별 기본 이미지
+  };
+
+  // 메인 히어로 이미지(배너)는 지역 대표 이미지 → 없으면 이후 첫 장소 이미지로 대체
   useEffect(() => {
     if (!courseInfo.region) return;
     if (location.state?.heroImage) return;

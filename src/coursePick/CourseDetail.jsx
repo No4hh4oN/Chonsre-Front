@@ -4,6 +4,9 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import "./CourseDetail.css";
 import { useLocation, useParams } from "react-router-dom";
 import regionImg from "/images/BgImg2.webp";
+import foodImg from "/images/food.png";
+import placeImg from "/images/place.png";
+import sleepImg from "/images/sleep.png";
 import placeIcon from "/images/placeIcon.png";
 import axios from "axios";
 
@@ -35,9 +38,9 @@ function getCategory(row) {
 }
 
 const EXCLUDE_KEYWORDS = [
-  "펜션","모텔","게스트하우스","영업소","사무소","수련원","크루즈","레저",
-  "기념관","미술관","전시관","터미널","주식회사","(주)","고속㈜","사업소",
-  "매표소","유람선","동부연맹","휴게소","케이블카","박물관","리조트","호텔","HOTEL",
+  "펜션", "모텔", "게스트하우스", "영업소", "사무소", "수련원", "크루즈", "레저",
+  "기념관", "미술관", "전시관", "터미널", "주식회사", "(주)", "고속㈜", "사업소",
+  "매표소", "유람선", "동부연맹", "휴게소", "케이블카", "박물관", "리조트", "호텔", "HOTEL",
 ];
 function excludeByKeywords(row) {
   const text = Object.values(row).join(" ");
@@ -141,8 +144,8 @@ async function fetchAccommodations({ pageNo = 1, numOfRows = 120 }) {
   const r = await axios.get("https://apis.data.go.kr/B551011/KorService2/areaBasedList2",
     { params: baseParams({ contentTypeId: 32, areaCode: 38, pageNo, numOfRows }) });
   let items = r?.data?.response?.body?.items?.item || [];
-  const BAD = ["모텔","호텔","리조트","호스텔","풀빌라","게스트","펜션","라마다"];
-  items = items.filter((it) => !BAD.some(kw => (it.title||"").includes(kw) || (it.addr1||"").includes(kw)));
+  const BAD = ["모텔", "호텔", "리조트", "호스텔", "풀빌라", "게스트", "펜션", "라마다"];
+  items = items.filter((it) => !BAD.some(kw => (it.title || "").includes(kw) || (it.addr1 || "").includes(kw)));
   return items;
 }
 function normalize(str = "") {
@@ -219,14 +222,14 @@ function makePlansByRegion_TOUR({ natureItems = [], foodItems = [], stayItems = 
       ];
     }
     if (N >= 6 && F >= 3 && S >= 2) {
-      plans[region].twoday = [0,1,2].map((d) => ({
-        day: d + 1, 관광지1: cats.관광지[2*d], 음식점: cats.음식점[d], 관광지2: cats.관광지[2*d + 1],
+      plans[region].twoday = [0, 1, 2].map((d) => ({
+        day: d + 1, 관광지1: cats.관광지[2 * d], 음식점: cats.음식점[d], 관광지2: cats.관광지[2 * d + 1],
         ...(d < 2 ? { 숙소: cats.숙소[d] } : {}),
       }));
     }
     if (N >= 8 && F >= 4 && S >= 3) {
-      plans[region].threeday = [0,1,2,3].map((d) => ({
-        day: d + 1, 관광지1: cats.관광지[2*d], 음식점: cats.음식점[d], 관광지2: cats.관광지[2*d + 1],
+      plans[region].threeday = [0, 1, 2, 3].map((d) => ({
+        day: d + 1, 관광지1: cats.관광지[2 * d], 음식점: cats.음식점[d], 관광지2: cats.관광지[2 * d + 1],
         ...(d < 3 ? { 숙소: cats.숙소[d] } : {}),
       }));
     }
@@ -270,7 +273,7 @@ function makePlansByRegion_RURAL(rows = [], foodByRegion = {}, stayByRegion = {}
     (grouped[region] ??= []).push(r);
   }
   Object.values(grouped).forEach(arr =>
-    arr.sort((a, b) => (a["장소명"]||"").localeCompare(b["장소명"]||""))
+    arr.sort((a, b) => (a["장소명"] || "").localeCompare(b["장소명"] || ""))
   );
 
   const plans = {};
@@ -284,8 +287,8 @@ function makePlansByRegion_RURAL(rows = [], foodByRegion = {}, stayByRegion = {}
       address: row?.["주소"] || "",
       category: "체험",
     });
-    const toFood = (it)  => ({ title: it?.title || "", address: it?.addr1 || "", category: "음식점" });
-    const toStay = (it)  => ({ title: it?.title || "", address: it?.addr1 || "", category: "숙소" });
+    const toFood = (it) => ({ title: it?.title || "", address: it?.addr1 || "", category: "음식점" });
+    const toStay = (it) => ({ title: it?.title || "", address: it?.addr1 || "", category: "숙소" });
 
     plans[region] = {};
     for (const [key, daysNeeded] of Object.entries(periods)) {
@@ -302,7 +305,7 @@ function makePlansByRegion_RURAL(rows = [], foodByRegion = {}, stayByRegion = {}
             체험: toExp(experiences[d]),
             음식점: toFood(foods[d % foods.length]),
             숙소: toStay(stays[d % stays.length]),
-          })); 
+          }));
         }
       }
     }
@@ -346,118 +349,114 @@ export default function CourseDetail() {
   // === 저장 진행 상태 ===
   const [saving, setSaving] = useState(false);
 
-// ===== GPT 설명 생성 상태 =====
-const OPENAI_KEY = import.meta.env.VITE_GPT_KEY;
+  // ===== GPT 설명 생성 상태 =====
+  const OPENAI_KEY = import.meta.env.VITE_GPT_KEY;
 
-const [placeDescs, setPlaceDescs] = useState({});
-const [descLoadingKey, setDescLoadingKey] = useState(null);
-const abortRef = useRef(null);
+  const [placeDescs, setPlaceDescs] = useState({});
+  const [descLoadingKey, setDescLoadingKey] = useState(null);
+  const abortRef = useRef(null);
 
-// 현재 선택된 장소
-const currentPlace = useMemo(() => {
-  return days?.[selectedDay - 1]?.[selectedIdx] || null;
-}, [days, selectedDay, selectedIdx]);
+  // 현재 선택된 장소
+  const currentPlace = useMemo(() => {
+    return days?.[selectedDay - 1]?.[selectedIdx] || null;
+  }, [days, selectedDay, selectedIdx]);
 
-const placeKeyOf = (it) => {
-  const t = (it?.title || "").trim();
-  const a = (it?.address || "").trim();
-  return `${t}__${a}`;
-};
+  const placeKeyOf = (it) => {
+    const t = (it?.title || "").trim();
+    const a = (it?.address || "").trim();
+    return `${t}__${a}`;
+  };
 
-const endsWithIda = (s) => /이다\.$/.test(s.trim());
-const forceIdaEnding = (s) => {
-  let x = s.trim().replace(/\s+/g, " ");
-  if (!endsWithIda(x)) {
-    x = x.replace(/([.!?]|입니다\.|죠\.|에요\.|예요\.)\s*$/u, "이다.");
-    if (!endsWithIda(x)) x = (x.replace(/[.!?]?\s*$/u, "") + "이다.").trim();
-  }
-  return x;
-};
-
-const clampLength = (raw) => {
-  return raw
-    .replace(/\n+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 500);
-};
-
-async function generatePlaceDescription(it, region) {
-  if (!OPENAI_KEY || !it?.title) return "";
-
-  const title = (it.title || "").trim();
-  const address = (it.address || "").trim();
-  const category = (it.category || "").trim();
-
-  if (abortRef.current) abortRef.current.abort();
-  const ctrl = new AbortController();
-  abortRef.current = ctrl;
-
-  const system =
-    "너는 한국 관광 전문 큐레이터이다. 답변은 반드시 한국어로 하고, 모든 문장을 '~다.' 체로 끝내라. 사실과 다른 정보나 과장 금지. 실제로 해당 장소의 핵심 정보를 구조적으로 설명하라. 설명은 한 단락만 출력하고 공백 포함 450~500자로 제한하라. 스타일: 간결·객관·정보지향. 존댓말 금지. 감탄사 금지.";
-
-
-  const user = [
-    `장소명: ${title}`,
-    address ? `주소: ${address}` : "",
-    region ? `지역 힌트: ${region}` : "",
-    category ? `분류: ${category}` : "",
-    "",
-    "반드시 단락 1개, 공백 포함 450~500자, 모든 문장 어미는 '~다.'로 작성하라.",
-    "포함 요소 예시: 대표 볼거리/특징, 자연·문화·역사적 맥락, 접근성(대략), 이용 포인트·주요 동선, 계절 포인트(있다면).",
-  ].join("\n");
-
-  
-
-  try {
-    setDescLoadingKey(placeKeyOf(it));
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      signal: ctrl.signal,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.2,
-        max_tokens: 500,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-      }),
-    });
-
-    if (!res.ok) {
-      console.error("OpenAI API error:", await res.text());
-      return "";
+  const endsWithIda = (s) => /이다\.$/.test(s.trim());
+  const forceIdaEnding = (s) => {
+    let x = s.trim().replace(/\s+/g, " ");
+    if (!endsWithIda(x)) {
+      x = x.replace(/([.!?]|입니다\.|죠\.|에요\.|예요\.)\s*$/u, "이다.");
+      if (!endsWithIda(x)) x = (x.replace(/[.!?]?\s*$/u, "") + "이다.").trim();
     }
-    const json = await res.json();
-    let text = (json?.choices?.[0]?.message?.content || "").trim();
-    if (!text) return "";
+    return x;
+  };
 
-    text = clampLength(text);
-    setPlaceDescs((prev) => ({ ...prev, [placeKeyOf(it)]: text }));
-    return text;
-  } catch (e) {
-    if (e?.name !== "AbortError") console.error(e);
-    return "";
-  } finally {
-    setDescLoadingKey(null);
+  const clampLength = (raw) => {
+    return raw
+      .replace(/\n+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 500);
+  };
+
+  async function generatePlaceDescription(it, region) {
+    if (!OPENAI_KEY || !it?.title) return "";
+
+    const title = (it.title || "").trim();
+    const address = (it.address || "").trim();
+    const category = (it.category || "").trim();
+
+    if (abortRef.current) abortRef.current.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
+    const system =
+      "너는 한국 관광 전문 큐레이터이다. 답변은 반드시 한국어로 하고, 모든 문장을 '~다.' 체로 끝내라. 사실과 다른 정보나 과장 금지. 실제로 해당 장소의 핵심 정보를 구조적으로 설명하라. 설명은 한 단락만 출력하고 공백 포함 450~500자로 제한하라. 스타일: 간결·객관·정보지향. 존댓말 금지. 감탄사 금지.";
+
+    const user = [
+      `장소명: ${title}`,
+      address ? `주소: ${address}` : "",
+      region ? `지역 힌트: ${region}` : "",
+      category ? `분류: ${category}` : "",
+      "",
+      "반드시 단락 1개, 공백 포함 450~500자, 모든 문장 어미는 '~다.'로 작성하라.",
+      "포함 요소 예시: 대표 볼거리/특징, 자연·문화·역사적 맥락, 접근성(대략), 이용 포인트·주요 동선, 계절 포인트(있다면).",
+    ].join("\n");
+
+    try {
+      setDescLoadingKey(placeKeyOf(it));
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        signal: ctrl.signal,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${OPENAI_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          temperature: 0.2,
+          max_tokens: 500,
+          messages: [
+            { role: "system", content: system },
+            { role: "user", content: user },
+          ],
+        }),
+      });
+
+      if (!res.ok) {
+        console.error("OpenAI API error:", await res.text());
+        return "";
+      }
+      const json = await res.json();
+      let text = (json?.choices?.[0]?.message?.content || "").trim();
+      if (!text) return "";
+
+      text = clampLength(text);
+      setPlaceDescs((prev) => ({ ...prev, [placeKeyOf(it)]: text }));
+      return text;
+    } catch (e) {
+      if (e?.name !== "AbortError") console.error(e);
+      return "";
+    } finally {
+      setDescLoadingKey(null);
+    }
   }
-}
 
-// 선택 변경 시 자동 생성/로딩
-useEffect(() => {
-  const it = currentPlace;
-  if (!it) return;
-  const key = placeKeyOf(it);
-  if (placeDescs[key]) return;
-  generatePlaceDescription(it, courseInfo.region);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [currentPlace]);
-
+  // 선택 변경 시 자동 생성/로딩
+  useEffect(() => {
+    const it = currentPlace;
+    if (!it) return;
+    const key = placeKeyOf(it);
+    if (placeDescs[key]) return;
+    generatePlaceDescription(it, courseInfo.region);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPlace]);
 
   // 일수 계산
   function daysFromPeriod(period = "") {
@@ -865,17 +864,25 @@ useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days, selectedDay]);
 
-  // ================== 이미지 선택 로직 ==================
-  const imageFor = (item) => {
-    if (!item) return regionImg;
-    if (imgIndex) {
-      const hit = getTourImageFor(item, imgIndex);
-      if (hit) return hit;
-    }
-    return regionImg;
+  /* ================== 이미지 선택 로직 (수정 지점) ================== */
+  const categoryPlaceholder = (item) => {
+    const cat = (item?.category || "").trim();
+    if (cat.includes("음식")) return foodImg;
+    if (cat.includes("숙소") || cat.includes("숙박")) return sleepImg;
+    // '관광지', '체험', '장소' 등은 모두 placeImg
+    return placeImg;
   };
 
-  // 메인 히어로 이미지
+  const imageFor = (item) => {
+    if (!item) return placeImg; // 기본 플레이스홀더
+    if (imgIndex) {
+      const hit = getTourImageFor(item, imgIndex);
+      if (hit) return hit; // 실사 이미지 우선
+    }
+    return categoryPlaceholder(item); // 카테고리별 기본 이미지
+  };
+
+  // 메인 히어로 이미지(배너)는 지역 대표 이미지 → 없으면 이후 첫 장소 이미지로 대체
   useEffect(() => {
     if (!courseInfo.region) return;
     if (location.state?.heroImage) return;
@@ -904,11 +911,11 @@ useEffect(() => {
     const firstStay = (days.flat().find((it) => it?.category === "숙소") || null);
     const accommodation = firstStay
       ? {
-          name: firstStay.title || "",
-          address: firstStay.address || "",
-          description: "",
-          imgUrl: imageFor(firstStay) || "",
-        }
+        name: firstStay.title || "",
+        address: firstStay.address || "",
+        description: "",
+        imgUrl: imageFor(firstStay) || "",
+      }
       : undefined;
 
     const courseDays = days.map((dayItems, idx) => ({
@@ -1037,9 +1044,9 @@ useEffect(() => {
             { length: Math.max(daysFromPeriod(courseInfo.period), days.length || 0) },
             (_, i) => (
               <span key={i}
-                    className={i + 1 === selectedDay ? "active" : ""}
-                    onClick={() => { setSelectedDay(i + 1); setSelectedIdx(0); }}
-                    style={{ cursor: "pointer" }}>
+                className={i + 1 === selectedDay ? "active" : ""}
+                onClick={() => { setSelectedDay(i + 1); setSelectedIdx(0); }}
+                style={{ cursor: "pointer" }}>
                 {i + 1}일차
               </span>
             )
@@ -1050,9 +1057,9 @@ useEffect(() => {
         <div className="day-course-place-container">
           {(days[selectedDay - 1] || []).map((it, idx) => (
             <div key={`${it.title}-${idx}`}
-                className={`place-title-img ${idx === selectedIdx ? "active" : ""}`}
-                onClick={() => setSelectedIdx(idx)}
-                style={{ cursor: "pointer" }}>
+              className={`place-title-img ${idx === selectedIdx ? "active" : ""}`}
+              onClick={() => setSelectedIdx(idx)}
+              style={{ cursor: "pointer" }}>
               <img src={imageFor(it)} alt="장소이미지" />
               <div className="place-title">
                 <span>{idx + 1}</span>

@@ -35,7 +35,7 @@ export default function ProfileEditModal({ isOpen, onClose }) {
           <button>삭제</button>
         </div>
       </div>
-      <hr style={{ border: "2px solid #E7ECF1"}} />
+      <hr style={{ border: "2px solid #E7ECF1" }} />
       <div className='modal-nickname-box'>
         <span>닉네임</span>
         <input type="text" placeholder={storedNick || '김촌스'} />

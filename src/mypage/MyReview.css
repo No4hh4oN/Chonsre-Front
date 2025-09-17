@@ -1,18 +1,42 @@
-.myreview-main-container{
+.myreview-main-container {
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     margin-top: 30px;
 }
-.review-main-image{
+
+.review-main-image {
     position: relative;
 }
-.review-main-image img{
+
+.review-main-image img {
     width: 1055px;
     height: 317px;
     border-radius: 33px;
+    display: block;
+    /* 잔여 공백 제거*/
 }
+
+/* 이미지 위 그라데이션 오버레이 */
+.review-main-image::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 33px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.13) 0%, rgba(0, 0, 0, 0.5) 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.review-main-image .info-box,
+.review-main-image .save-btn,
+.review-main-image .review-two-button,
+.review-main-image .review-menu {
+    /* position: relative; */
+    z-index: 2;
+}
+
 .review-main-image .save-btn {
     position: absolute;
     top: 20px;
@@ -29,6 +53,7 @@
     text-align: center;
     color: #ffffff;
 }
+
 /* 코스명/기간 왼쪽 하단 */
 .review-main-image .info-box {
     position: absolute;
@@ -36,13 +61,15 @@
     left: 25px;
     color: white;
 }
-.review-course-name{
+
+.review-course-name {
     font-family: 'Pretendard-SemiBold';
     font-weight: 600;
     font-size: 32px;
     color: white;
 }
-.review-course-period{
+
+.review-course-period {
     font-family: 'Pretendard-Medium';
     font-weight: 500;
     font-size: 18px;
@@ -50,13 +77,13 @@
 }
 
 
-.review-detail-course-info img{
+.review-detail-course-info img {
     width: 92px;
     height: 92px;
     border-radius: 12px;
 }
 
-.review-course-info-box{
+.review-course-info-box {
     width: 440px;
     height: 561px;
     border-radius: 20px;
@@ -67,13 +94,14 @@
     /* justify-content: center; */
 }
 
-.info-period-course span{
+.info-period-course span {
     font-family: 'Pretendard-SemiBold';
     font-weight: 600;
     font-size: 24px;
     color: #D3D8DE;
 }
-.info-period-course{
+
+.info-period-course {
     display: flex;
     flex-direction: row;
     gap: 47px;
@@ -83,23 +111,26 @@
     cursor: pointer;
 }
 
-.review-detail-course-info{
+.review-detail-course-info {
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 20px;
 }
-.course-info-text{
+
+.course-info-text {
     display: flex;
     flex-direction: column;
 }
-.course-info-text span:nth-child(1){
+
+.course-info-text span:nth-child(1) {
     font-family: 'Pretendard-SemiBold';
     font-weight: 600;
     font-size: 22px;
     color: #2C2F33;
 }
-.course-info-text span:nth-child(2){
+
+.course-info-text span:nth-child(2) {
     font-family: 'Pretendard-Medium';
     font-weight: 500;
     font-size: 16px;
@@ -107,7 +138,8 @@
     width: 200px;
     margin-top: 7px;
 }
-.places-grid{
+
+.places-grid {
     margin-left: 25px;
     display: flex;
     flex-direction: column;
@@ -115,18 +147,19 @@
     margin-top: 20px;
 }
 
-.review-divider{
+.review-divider {
     width: 380px;
     border: 1px solid #D3D8DE;
 }
 
-.info-and-review-box{
+.info-and-review-box {
     display: flex;
     flex-direction: row;
     gap: 27px;
     margin-top: 30px;
 }
-.info-and-review-box textarea{
+
+.info-and-review-box textarea {
     width: 584px;
     height: 560px;
     border-radius: 20px;
@@ -141,20 +174,22 @@
     box-sizing: border-box;
 }
 
-.info-and-review-box textarea::placeholder{
+.info-and-review-box textarea::placeholder {
     color: #B5BCC3;
 }
 
-.review-two-button img{
+.review-two-button img {
     width: 30px;
     height: 30px;
 }
-.review-two-button{
+
+.review-two-button {
     position: absolute;
     top: 15px;
     right: 30px;
 }
-.review-menu{
+
+.review-menu {
     z-index: 20;
     position: absolute;
     display: flex;
@@ -171,33 +206,53 @@
     background-color: #FFFFFF;
     gap: 4px;
     right: -10px;
-    top:35px;
+    top: 35px;
 }
-.review-menu-edit img{
+
+.review-menu-edit img {
     width: 26px;
     height: 26px;
 }
-.review-menu-delete img{
+
+.review-menu-delete img {
     width: 26px;
     height: 26px;
 }
-.review-menu-edit{
+
+.review-menu-edit {
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 10px;
     color: #656B70;
     margin-right: 10px;
+    background-color: #ffffff;
+    border: none;
+    outline: none;
+    font-family: 'Pretendard- Medium';
+    font-weight: 500;
+    font-size: 18px;
 }
-.review-menu-delete{
+
+.review-menu-delete {
     color: #F66A6A;
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 10px;
     margin-right: 10px;
+    background-color: #ffffff;
+    border: none;
+    outline: none;
+    font-family: 'Pretendard- Medium';
+    font-weight: 500;
+    font-size: 18px;
 }
 
 .info-period-course span.active {
-    color: #2C2F33; 
+    color: #2C2F33;
+}
+
+.review-edit-icon {
+    cursor: pointer;
 }

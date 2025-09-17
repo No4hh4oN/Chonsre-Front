@@ -11,7 +11,8 @@ import HomeIcon from "/icons/home.png";
 import editIcon from "/icons/edit.png";
 import CancelEditIcon from "/icons/CancelEditIcon.png";
 import closeModal from "/icons/CloseModal.png";
-import defaultImg from "/images/defaultImg.png";
+import defaultImg from "/images/place.png";
+import defaultAccom from "/images/sleep.png";
 
 import {
   DndContext,
@@ -89,7 +90,7 @@ export default function CourseEditor() {
               name: course.accommodation.name,
               address: course.accommodation.address,
               desc: course.accommodation.description,
-              image: course.accommodation.imgUrl || defaultImg,
+              image: course.accommodation.imgUrl || defaultAccom,
               lat: course.accommodation.lat,
               lng: course.accommodation.lng,
             }]
@@ -178,7 +179,12 @@ export default function CourseEditor() {
 
   const cancelEdit = () => setIsEditing(false);
 
-  const toImgOrNull = (url) => (!url || url === defaultImg ? null : url);
+  const toImgOrNull = (url, type = "place") => {
+    if (!url) return null;
+    if (type === "place" && url === defaultImg) return url;
+    if (type === "accom" && url === defaultAccom) return url;
+    return url;
+  };
 
   const buildCoursePayload = (c) => ({
     title: c.courseTitle || c.name || "여행지",
@@ -188,7 +194,7 @@ export default function CourseEditor() {
         placeName: p.name,
         description: p.desc || "",
         address: p.address || "",
-        imgUrl: toImgOrNull(p.image),
+        imgUrl: toImgOrNull(p.image, "place"),
       })),
     })),
     accommodation:
@@ -197,7 +203,7 @@ export default function CourseEditor() {
           name: c.accommodations[0].name || "",
           address: c.accommodations[0].address || "",
           description: c.accommodations[0].desc || "",
-          imgUrl: toImgOrNull(c.accommodations[0].image),
+          imgUrl: toImgOrNull(c.accommodations[0].image, "accom"),
         }
         : null,
   });
@@ -279,7 +285,7 @@ export default function CourseEditor() {
 
     if (!existing) {
       const script = document.createElement("script");
-      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta?.env?.VITE_KAKAO_MAP_KEY || "a78d10a9ff203286e5fcd09e0f663663"}&autoload=false&libraries=services`;
+      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_JS_KEY}&autoload=false&libraries=services`;
       script.async = true;
       script.onload = onReady;
       document.head.appendChild(script);

@@ -1,11 +1,11 @@
-.CoursePick{
+.CoursePick {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
 }
 
-.pick-title-container{
+.pick-title-container {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -13,7 +13,8 @@
     gap: 550px;
     margin-top: 10px;
 }
-.pick-title{
+
+.pick-title {
     font-family: 'Pretendard-SemiBold';
     font-weight: 600;
     font-size: 40px;
@@ -21,16 +22,18 @@
     color: #000000;
     margin-top: 170px;
 }
-.pick-title span{
+
+.pick-title span {
     color: #3AC581;
 }
-.pick-title-container img{
+
+.pick-title-container img {
     width: 393px;
     height: 344px;
 }
 
 /* 드롭다운 */
-.pick-dropdown{
+.pick-dropdown {
     width: 1200px;
     height: 139px;
     border-radius: 20px;
@@ -47,18 +50,21 @@
     margin-top: 20px;
 }
 
-.pick-dropdown-box{
+.pick-dropdown-box {
     display: flex;
     flex-direction: row;
     gap: 30px;
     align-items: center;
 }
-.dropdown-arrow{
+
+.dropdown-arrow {
     width: 22px;
     height: 12px;
 }
 
-.pick-type-dropdown ,.pick-style-dropdown,.pick-period-dropdown{
+.pick-type-dropdown,
+.pick-style-dropdown,
+.pick-period-dropdown {
     position: relative;
     width: 133px;
     height: 60px;
@@ -67,10 +73,12 @@
     gap: 10px;
     background-color: #FFFFFF;
 }
-.pick-style-dropdown{
+
+.pick-style-dropdown {
     width: 189px;
 }
-.pick-period-dropdown{
+
+.pick-period-dropdown {
     width: 156px;
 }
 
@@ -81,14 +89,15 @@
     background-color: #ffffff;
     border-radius: 16px;
     margin-top: 30px;
-    padding: 17px 29px 17px 26px  
+    padding: 17px 29px 17px 26px
 }
-.pick-dropdown-item{
+
+.pick-dropdown-item {
     color: #B5BCC3;
     margin-top: 17px;
 }
 
-.pick-dropdown button{
+.pick-dropdown button {
     width: 194px;
     height: 60px;
     border-radius: 12px;
@@ -102,7 +111,7 @@
     margin-left: 250px;
 }
 
-.pick-type-dropdown-menu-top{
+.pick-type-dropdown-menu-top {
     text-align: center;
     margin-top: 15px;
     display: flex;
@@ -112,18 +121,21 @@
 }
 
 /* 추천코스 */
-.pick-course-contents{
+.pick-course-contents {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 가로 4개 */
+    grid-template-columns: repeat(4, 1fr);
+    /* 가로 4개 */
     gap: 75px 30.67px;
     margin-top: 70px;
 }
-.pick-course-contents img{
+
+.pick-course-contents img {
     width: 277px;
     height: 277px;
     border-radius: 16px;
 }
-.course-period{
+
+.course-period {
     width: 92px;
     height: 36px;
     border-radius: 30px;
@@ -138,13 +150,15 @@
     align-items: center;
     margin-top: 15px;
 }
-.course-region{
+
+.course-region {
     font-family: 'Pretendard--SemiBold';
     font-weight: 600;
     font-size: 24px;
     color: #2C2F33;
 }
-.pick-course-contents span{
+
+.pick-course-contents span {
     font-family: 'Pretendard-Medium';
     font-weight: 500;
     font-size: 18px;
@@ -152,7 +166,7 @@
 }
 
 /* 하단 숫자 바*/
-.pagination{
+.pagination {
     font-family: 'Pretendard-Medium';
     font-weight: 500;
     font-size: 18px;
@@ -165,23 +179,27 @@
     margin-top: 100px;
     margin-bottom: 100px;
 }
+
 .pagination-arrow img {
     width: 16px;
     height: 29px;
     cursor: pointer;
 }
+
 .pagination-arrow {
-    background: none;     
-    border: none;         
-    padding: 0;           
+    background: none;
+    border: none;
+    padding: 0;
     cursor: pointer;
 }
+
 .pagination-numbers {
     display: flex;
-    gap: 5px; 
+    gap: 5px;
 }
+
 .pagination-button {
-    background-color: #E7ECF1; 
+    background-color: #E7ECF1;
     width: 40px;
     height: 46px;
     border-radius: 6px;
@@ -189,10 +207,12 @@
     border: none;
     cursor: pointer;
 }
+
 .pagination-button.active {
     background-color: #4ec27f;
     color: #ffffff;
 }
+
 .pagination-button:hover:not(.active) {
-  background-color: #e0e0e0;   /* hover 시 살짝 진한 회색 */
+    background-color: #e0e0e0;
 }

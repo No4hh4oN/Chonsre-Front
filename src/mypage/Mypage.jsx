@@ -17,7 +17,7 @@ export default function Mypage() {
   const navigator = useNavigate();
 
   // 탭: 코스 기록 / 예정된 코스 / 회원탈퇴
-  const [activeTab, setActiveTab] = useState(null); // 'records' | 'scheduled' | 'withdraw' | null
+  const [activeTab, setActiveTab] = useState('records'); // 'records' | 'scheduled' | 'withdraw' | null
   const [openMenuId, setOpenMenuId] = useState(null);
 
   const [nickname, setNickname] = useState(" ");
@@ -55,10 +55,7 @@ export default function Mypage() {
     if (!url || typeof url !== "string") return replaceCourse;
     const u = url.trim();
     if (BLOCKED_LOCAL_IMAGES.has(u)) return replaceCourse;
-
-    // VisitKorea CMS 도메인만 허용
     if (ALLOWED_IMG_HOST.test(u)) return u;
-    // 그 외는 전부 대체 이미지로
     return replaceCourse;
   }
 
@@ -70,21 +67,17 @@ export default function Mypage() {
     const start = new Date(sy, sm - 1, sd, 0, 0, 0, 0).getTime();
     const end = new Date(ey, em - 1, ed, 0, 0, 0, 0).getTime();
     const dayMs = 24 * 60 * 60 * 1000;
-
-    // 포함(포함) 기준: 날짜 차이 + 1
     const days = Math.max(1, Math.round((end - start) / dayMs) + 1);
     const nights = Math.max(0, days - 1);
-
     return nights === 0 ? "당일치기 코스" : `${nights}박${days}일 코스`;
   }
 
-  // 제목 가공: "[A] 광양시" → "[A] 전라남도 광양시 N박M일 코스"
+  // 제목 가공
   function formatCourseTitle(item = {}) {
     const raw = String(item.title || "").trim();
     const labelField = String(item.courseLabel || "").trim();
     const stayText = calcStayText(item.svdStartDate, item.svdEndDate);
 
-    // 케이스 1) "[A] 광양시"
     const mBracketCity = raw.match(/^\s*\[([A-C])\]\s*([^\s]+?(?:시|군|구))\s*$/);
     if (mBracketCity) {
       const letter = mBracketCity[1];
@@ -92,20 +85,16 @@ export default function Mypage() {
       return `[${letter}]전라남도 ${city} ${stayText}`;
     }
 
-    // 케이스 2) title이 "광양시"처럼 시·군·구만, courseLabel은 따로 온 경우
     if (/^[A-C]$/.test(labelField)) {
       const mCityOnly = raw.match(/^\s*([^\s]+?(?:시|군|구))\s*$/);
       if (mCityOnly) {
         const city = mCityOnly[1];
         return `[${labelField}]전라남도 ${city} ${stayText}`;
       }
-      // 라벨만 붙여서 보여주기(이미 완성된 제목이 아니라면)
       if (!/^\s*\[[A-C]\]/.test(raw)) {
         return `[${labelField}] ${raw || "코스"}`;
       }
     }
-
-    // 기본: 원문 유지
     return raw || "코스";
   }
 
@@ -121,24 +110,12 @@ export default function Mypage() {
       setPhotoUrl(profile);
     }
   }
-  // 시작일이 오늘(로컬 자정)보다 이전이면 과거로 간주
-  // function isPastByStartDate(svdStartDateStr) {
-  //   if (!svdStartDateStr) return false;
-  //   const [y, m, d] = svdStartDateStr.split("-").map(Number);
-  //   if (!y || !m || !d) return false;
 
-  //   const today = new Date();
-  //   const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0,0,0,0).getTime();
-  //   const startMid = new Date(y, m - 1, d, 0,0,0,0).getTime();
-
-  //   return startMid < todayMid;
-  // }
-
-  // 리뷰 작성여부
+  // 리뷰 작성여부 갱신
   useEffect(() => {
     const onFocusOrVisible = () => {
       if (activeTab === 'records') {
-        fetchPastRecords(); // 서버에서 hasReview 최신값 다시 받기
+        fetchPastRecords();
       }
     };
     window.addEventListener('focus', onFocusOrVisible);
@@ -153,7 +130,6 @@ export default function Mypage() {
   function calcDDay(svdStartDateStr) {
     if (!svdStartDateStr) return null;
     const msPerDay = 24 * 60 * 60 * 1000;
-
     const now = new Date();
     const todayLocalMidnight = new Date(
       now.getFullYear(),
@@ -161,10 +137,8 @@ export default function Mypage() {
       now.getDate(),
       0, 0, 0, 0
     ).getTime();
-
     const [y, m, d] = svdStartDateStr.split('-').map(Number);
     const tripLocalMidnight = new Date(y, (m - 1), d, 0, 0, 0, 0).getTime();
-
     const diff = tripLocalMidnight - todayLocalMidnight;
     const days = Math.ceil(diff / msPerDay);
     return days < 0 ? 0 : days;
@@ -250,20 +224,18 @@ export default function Mypage() {
     }
   }, [activeTab]);
 
-
   // ================= 코스 삭제 =================
   async function handleDeleteSaved(savedId) {
     try {
       const token = localStorage.getItem("accessToken");
       if (!token) throw new Error("로그인 토큰이 없습니다.");
 
-      // 1) 리뷰 선삭제
+      // 1) 리뷰 선삭제 (404는 무시)
       try {
         const delReview = await fetch(`https://smartzoo.shop/reviews/saved/${savedId}`, {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
         });
-        // 404는 리뷰 없음 → 무시
         if (!delReview.ok && delReview.status !== 404) {
           const msg = await delReview.text().catch(() => "");
           console.log("DELETE review failed:", delReview.status, msg);
@@ -282,14 +254,13 @@ export default function Mypage() {
         throw new Error(msg || `코스 삭제 실패 (status ${res.status})`);
       }
 
-      // 성공:현재 탭에 따라 목록에서 제거
       if (activeTab === 'records') {
         setRecords((prev) => prev.filter((x) => x.savedId !== savedId));
       } else if (activeTab === 'scheduled') {
         setUpcoming((prev) => prev.filter((x) => x.savedId !== savedId));
       }
 
-      setOpenMenuId(null); // 메뉴 닫기
+      setOpenMenuId(null);
       alert("코스가 삭제되었습니다.");
     } catch (e) {
       alert(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
@@ -323,6 +294,27 @@ export default function Mypage() {
     } finally {
       setUnlinkLoading(false);
     }
+  };
+
+  const buildNavState = (item) => {
+    const label = (item.courseLabel ?? "").trim();
+    const isLabeled = /^[ABC]$/.test(label);
+    // 공통(항상 전달해오던 것만)
+    const base = {
+      svdStartDate: item.svdStartDate,
+      svdEndDate: item.svdEndDate,
+      title: item.title,
+      courseImgUrl: item.courseImgUrl,
+      hasReview: !!item.hasReview,
+    };
+    // 라벨이 A/B/C일 때만 ‘추가’ 정보 포함
+    if (isLabeled) {
+      base.courseId = item.courseId;
+      base.courseLabel = label;
+      base.accommodationName = item.accommodationName || "";
+      base.accommodationImgUrl = item.courseImgUrl || "";
+    }
+    return base;
   };
 
   return (
@@ -362,9 +354,9 @@ export default function Mypage() {
                 const period = `${item.svdStartDate} - ${item.svdEndDate}`;
                 const displayTitle = formatCourseTitle(item);
                 const imgUrl = pickDisplayImage(item.courseImgUrl || '');
-
-                const canReview = !!item.canReview;
                 const reviewed = !!item.hasReview;
+                const canReview = !!item.canReview;
+                const navState = buildNavState(item);
 
                 return (
                   <div key={item.savedId} className='record-box'>
@@ -374,9 +366,7 @@ export default function Mypage() {
                     }
 
                     <div className='record-course-info'>
-                      <span className='record-course-name'>
-                        {displayTitle}
-                      </span>
+                      <span className='record-course-name'>{displayTitle}</span>
                       <span className='record-course-period'>{period}</span>
                     </div>
 
@@ -395,31 +385,16 @@ export default function Mypage() {
                         className={`record-write-review ${reviewed ? 'reviewed' : ''}`}
                         disabled={reviewed ? false : !canReview}
                         onClick={() => {
-                          navigator(`/myReview/${item.savedId}`, {
-                            state: {
-                              svdStartDate: item.svdStartDate,
-                              svdEndDate: item.svdEndDate,
-                              title: item.title,
-                              accommodationName: item.accommodationName,
-                              accommodationImgUrl: item.accommodationImgUrl,
-                              hasReview: reviewed,
-                            },
-                          });
+                          navigator(`/myReview/${item.savedId}`, { state: navState });
                         }}
                       >
                         {reviewed ? '후기 작성완료' : '후기 작성하기'}
                       </button>
+
                       <button
                         className='record-course-detail'
                         onClick={() => {
-                          navigator(`/DetailSaveCourse/${item.savedId}`, {
-                            state: {
-                              svdStartDate: item.svdStartDate,
-                              svdEndDate: item.svdEndDate,
-                              title: item.title,
-                              courseImgUrl: item.courseImgUrl,
-                            },
-                          });
+                          navigator(`/DetailSaveCourse/${item.savedId}`, { state: navState });
                         }}
                       >
                         코스 자세히 보기
@@ -437,7 +412,6 @@ export default function Mypage() {
                         </button>
                       </div>
                     )}
-
                   </div>
                 );
               })}
@@ -446,12 +420,8 @@ export default function Mypage() {
 
           {activeTab === 'scheduled' && (
             <>
-              {upcomingLoading && (
-                <div style={{ padding: 16 }}>불러오는 중…</div>
-              )}
-              {upcomingError && (
-                <div style={{ padding: 16, color: 'red' }}>{upcomingError}</div>
-              )}
+              {upcomingLoading && <div style={{ padding: 16 }}>불러오는 중…</div>}
+              {upcomingError && <div style={{ padding: 16, color: 'red' }}>{upcomingError}</div>}
               {!upcomingLoading && !upcomingError && upcoming.length === 0 && (
                 <div style={{ padding: 16, color: '#666' }}>예정된 코스가 없습니다.</div>
               )}
@@ -461,6 +431,7 @@ export default function Mypage() {
                 const period = `${item.svdStartDate} - ${item.svdEndDate}`;
                 const displayTitle = formatCourseTitle(item);
                 const imgUrl = pickDisplayImage(item.courseImgUrl || '');
+                const navState = buildNavState(item);
 
                 return (
                   <div key={item.savedId} className='record-box'>
@@ -470,9 +441,7 @@ export default function Mypage() {
                     }
 
                     <div className='record-course-info'>
-                      <span className='record-course-name'>
-                        {displayTitle}
-                      </span>
+                      <span className='record-course-name'>{displayTitle}</span>
                       <span className='record-course-period'>{period}</span>
                     </div>
 
@@ -493,14 +462,7 @@ export default function Mypage() {
                       <button
                         className='record-course-detail-2'
                         onClick={() => {
-                          navigator(`/DetailSaveCourse/${item.savedId}`, {
-                            state: {
-                              svdStartDate: item.svdStartDate,
-                              svdEndDate: item.svdEndDate,
-                              title: item.title,
-                              courseImgUrl: item.courseImgUrl,
-                            },
-                          });
+                          navigator(`/DetailSaveCourse/${item.savedId}`, { state: navState });
                         }}
                       >
                         코스 자세히 보기
@@ -508,11 +470,7 @@ export default function Mypage() {
                     </div>
 
                     {openMenuId === item.savedId && (
-                      <div
-                        className="record-menu"
-                        onClick={(e) => e.stopPropagation()}
-                        role="menu"
-                      >
+                      <div className="record-menu" onClick={(e) => e.stopPropagation()} role="menu">
                         <button
                           className="record-menu-delete"
                           onClick={() => handleDeleteSaved(item.savedId)}
@@ -534,6 +492,7 @@ export default function Mypage() {
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
       />
+
       <Modal
         isOpen={isDelAccountModalOpen}
         onRequestClose={handleDelCancel}
@@ -555,9 +514,7 @@ export default function Mypage() {
               )}
 
               <div className="modal-del-account-buttons">
-                <button onClick={handleDelCancel} disabled={unlinkLoading}>
-                  취소
-                </button>
+                <button onClick={handleDelCancel} disabled={unlinkLoading}>취소</button>
                 <button onClick={handleDelConfirm} disabled={unlinkLoading}>
                   {unlinkLoading ? "처리 중…" : "확인"}
                 </button>

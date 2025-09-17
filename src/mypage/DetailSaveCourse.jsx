@@ -7,7 +7,7 @@ import placeIcon from "/images/placeIcon.png";
 import replaceDetail from "/images/replaceDetail.png";
 
 export default function DetailSaveCourse() {
-  const { id } = useParams(); // /DetailSaveCourse/:id
+  const { id } = useParams(); // /DetailSaveCourse/:id (savedId)
   const location = useLocation();
   const navState = (location && location.state) || {};
 
@@ -23,8 +23,8 @@ export default function DetailSaveCourse() {
   const [selectedDay, setSelectedDay] = useState(1);
   const [selectedIdx, setSelectedIdx] = useState(0);
 
-  // 대표 이미지 (없으면 replaceDetail만 사용)
-  const [heroImg, setHeroImg] = useState(replaceDetail);
+  // 대표 이미지
+  const [heroImg, setHeroImg] = useState(navState?.courseImgUrl || replaceDetail);
 
   // Kakao 지도
   const mapRef = useRef(null);
@@ -32,7 +32,7 @@ export default function DetailSaveCourse() {
   const placesRef = useRef(null);
   const markersRef = useRef([]);
 
-  // ===== GPT 설명 생성 상태 =====
+  // ===== GPT 설명 생성 상태 (원래 코드 유지) =====
   const OPENAI_KEY = import.meta.env.VITE_GPT_KEY;
   const [placeDescs, setPlaceDescs] = useState({});
   const [descLoadingKey, setDescLoadingKey] = useState(null);
@@ -49,13 +49,13 @@ export default function DetailSaveCourse() {
     "/images/food.png",
     "/images/sleep.png",
   ]);
-
-  // 대표이미지 선정 시에는 placeholder 로컬 이미지는 절대 사용하지 않음
   const isBadForHero = (url) => {
     const u = (url || "").trim();
     if (!u) return true;
     return PLACEHOLDER_LOCAL_SET.has(u);
   };
+  const VK_IMG = /^https?:\/\/tong\.visitkorea\.or\.kr\/cms\/resource\//i;
+  const isVKImage = (u) => !!(u && typeof u === 'string' && VK_IMG.test(u.trim()));
 
   const placeKeyOf = (it) => {
     const t = (it?.title || "").trim();
@@ -66,7 +66,7 @@ export default function DetailSaveCourse() {
   const clampLength = (raw) =>
     raw.replace(/\n+/g, " ").replace(/\s+/g, " ").trim().slice(0, 500);
 
-  /* ============ GPT 설명 생성 ============ */
+  /* ============ GPT 설명 생성 (원본 로직 유지) ============ */
   async function generatePlaceDescription(it, region) {
     if (!OPENAI_KEY || !it?.title) return "";
     const title = (it.title || "").trim();
@@ -128,6 +128,7 @@ export default function DetailSaveCourse() {
       setDescLoadingKey(null);
     }
   }
+
   // 선택 변경 시 자동 설명 생성
   useEffect(() => {
     const it = currentPlace;
@@ -138,67 +139,118 @@ export default function DetailSaveCourse() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPlace]);
 
-  /* ===== 저장된 코스 상세 불러오기 ===== */
+  /* ===== 저장된/코스 상세 불러오기 ===== */
   useEffect(() => {
     if (!id) return;
-
     (async () => {
       try {
         const token = localStorage.getItem("accessToken");
         if (!token) throw new Error("로그인 토큰이 없습니다.");
 
-        // 1) 예정 코스 상세
-        let res = await fetch(
-          `https://smartzoo.shop/recommend/saved/upcoming/${id}`,
-          { method: "GET", headers: { Authorization: `Bearer ${token}` } }
-        );
+        const label = (navState?.courseLabel ?? "").trim();
+        const isLabeled = /^[ABC]$/.test(label);
+        const courseId = isLabeled ? navState?.courseId : null;
+        let detail = null;
 
-        // 2) 실패 시 과거 코스 상세로 재시도
-        if (!res.ok) {
-          res = await fetch(
-            `https://smartzoo.shop/recommend/saved/past/${id}`,
+        // 1) courseId 우선 조회
+        if (courseId && isLabeled) {
+          let res = await fetch(
+            `https://smartzoo.shop/recommend/course/${courseId}`,
             { method: "GET", headers: { Authorization: `Bearer ${token}` } }
           );
-        }
-        if (!res.ok) {
-          const msg = await res.text().catch(() => "");
-          throw new Error(msg || `코스 상세 조회 실패 (status ${res.status})`);
+          if (res.ok) detail = await res.json();
         }
 
-        const data = await res.json();
+        // 2) 폴백: saved 상세 (upcoming → past)
+        if (!detail) {
+          let res = await fetch(
+            `https://smartzoo.shop/recommend/saved/upcoming/${id}`,
+            { method: "GET", headers: { Authorization: `Bearer ${token}` } }
+          );
+          if (!res.ok) {
+            res = await fetch(
+              `https://smartzoo.shop/recommend/saved/past/${id}`,
+              { method: "GET", headers: { Authorization: `Bearer ${token}` } }
+            );
+          }
+          if (!res.ok) {
+            const msg = await res.text().catch(() => "");
+            throw new Error(msg || `코스 상세 조회 실패 (status ${res.status})`);
+          }
+          detail = await res.json();
+        }
+
+        const courseData = detail?.course ?? detail?.data ?? detail;
+
         // 상단 정보
         setCourseInfo((prev) => ({
-          region: data?.course?.title || prev.region || "",
+          region: courseData?.title || navState?.title || prev.region || "",
           period:
             calcPeriodText(navState?.svdStartDate, navState?.svdEndDate) ||
-            prev.period ||
-            "",
+            prev.period || "",
         }));
 
-        // 일정 매핑 
-        const mappedDays = (data?.course?.days || []).map((d) =>
-          (d?.places || []).map((p) => ({
-            title: p?.placeName || "",
+
+        // 일정 + 숙소를 각 일차 마지막으로
+        const mappedDays = (courseData?.days || []).map((d) => {
+          const basePlaces = (d?.places || []).map((p) => ({
+            title: p?.placeName || p?.title || "",
             address: p?.address || "",
-            imgUrl: (p?.imgUrl || "").trim(),
-            category: p?.description || "", 
-          }))
-        );
+            imgUrl: (p?.imgUrl || p?.image || p?.firstimage || p?.firstimage2 || "").trim(),
+            category: p?.description || "",
+          }));
+
+          // 숙소 자동 추가는 A/B/C 라벨일 때만 동작
+          if (!isLabeled) return basePlaces;
+          const accom = courseData?.accommodation ?? {
+            name: navState?.accommodationName || "",
+            imgUrl: navState?.accommodationImgUrl || "",
+            address: "",
+          };
+          const last = basePlaces[basePlaces.length - 1];
+          const lastName = (last?.title || "").trim();
+          const needAppend =
+            accom?.name &&
+            (!lastName ||
+              !/숙|호텔|모텔|리조트|펜션|게스트|호스텔|hotel|motel|resort|pension|guest/i.test(lastName));
+          return needAppend
+            ? [...basePlaces, { title: accom.name, address: accom.address || "", imgUrl: accom.imgUrl || "", category: "숙소" }]
+            : basePlaces;
+        });
+
         setDays(mappedDays);
         setSelectedDay(1);
         setSelectedIdx(0);
 
-        // 대표 이미지:  이미지→ replaceDetail
-        const firstNonPlaceholder =
-          mappedDays
-            .flat()
-            .map((it) => (it?.imgUrl || "").trim())
-            .find((u) => u && !isBadForHero(u)) || "";
-        const accomImg = (data?.course?.accommodation?.imgUrl || "").trim();
-        const firstValidHero = firstNonPlaceholder || (!isBadForHero(accomImg) ? accomImg : "");
-        setHeroImg(firstValidHero || replaceDetail);
+        // 대표 이미지: 네비 VK 이미지 > 코스 내 유효 이미지 > (A/B/C일 때만) 숙소 이미지 > 대체
+        const navImg = (navState?.courseImgUrl || "").trim();
 
-        // 상단 날짜 (라우터 state가 있으면 유지)
+        if (isVKImage(navImg)) {
+          setHeroImg(navImg);
+        } else {
+          const firstNonPlaceholder =
+            mappedDays
+              .flat()
+              .map((it) => (it?.imgUrl || "").trim())
+              .find((u) => u && !isBadForHero(u)) || "";
+
+          // 라벨이 A/B/C인 경우에만 숙소 이미지를 후보에 포함
+          const accomImg = isLabeled
+            ? (
+                (courseData?.accommodation?.imgUrl ||
+                  navState?.accommodationImgUrl ||
+                  "")
+              ).trim()
+            : "";
+
+          const firstValidHero =
+            firstNonPlaceholder ||
+            (accomImg && !isBadForHero(accomImg) ? accomImg : "");
+
+          setHeroImg(firstValidHero || replaceDetail);
+        }
+
+        // 상단 날짜 (라우터 state 우선)
         if (!startDate && navState?.svdStartDate) setStartDate(navState.svdStartDate);
         if (!endDate && navState?.svdEndDate) setEndDate(navState.svdEndDate);
       } catch (e) {
@@ -208,8 +260,8 @@ export default function DetailSaveCourse() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-    /* ===== 유틸 ===== */
-    function calcPeriodText(start, end) {
+  /* ===== 유틸 ===== */
+  function calcPeriodText(start, end) {
     if (!start || !end) return "";
     const [sy, sm, sd] = start.split("-").map(Number);
     const [ey, em, ed] = end.split("-").map(Number);
@@ -219,9 +271,9 @@ export default function DetailSaveCourse() {
     const days = Math.max(1, Math.round((e - s) / dayMs) + 1);
     const nights = Math.max(0, days - 1);
     return nights === 0 ? "당일치기" : `${nights}박 ${days}일`;
-    }
+  }
 
-    function daysLengthFromPeriod(period = "") {
+  function daysLengthFromPeriod(period = "") {
     const s = String(period).trim();
     if (!s) return 1;
     if (/당일/.test(s)) return 1;
@@ -230,9 +282,9 @@ export default function DetailSaveCourse() {
     const m2 = s.match(/(\d+)\s*일/);
     if (m2) return Math.max(1, parseInt(m2[1], 10));
     return 1;
-    }
+  }
 
-  // 주소/좌표 → LatLng
+  // Kakao 지도 관련 (원본 로직 유지)
   const resolveCenter = (kakao, geocoder, input) =>
     new Promise((resolve) => {
       if (input?.type === "coords") {
@@ -250,7 +302,6 @@ export default function DetailSaveCourse() {
       });
     });
 
-  // 카카오 지도 초기화
   useEffect(() => {
     const KAKAO_JS_KEY = import.meta.env.VITE_KAKAO_JS_KEY;
 
@@ -292,22 +343,14 @@ export default function DetailSaveCourse() {
     }
   }, [courseInfo.region]);
 
-  // 지도 마커
   const clearMarkers = () => {
     markersRef.current.forEach((ov) => ov.setMap(null));
     markersRef.current = [];
   };
 
   const PIX_OFFSETS = [
-    [0, 0],
-    [14, 0],
-    [-14, 0],
-    [0, 14],
-    [0, -14],
-    [10, 10],
-    [-10, 10],
-    [10, -10],
-    [-10, -10],
+    [0, 0], [14, 0], [-14, 0], [0, 14], [0, -14],
+    [10, 10], [-10, 10], [10, -10], [-10, -10],
   ];
 
   const geocodeOne = (kakao, geocoder, places, item, regionHint) =>
@@ -330,7 +373,6 @@ export default function DetailSaveCourse() {
       };
 
       if (!addr) return tryKeyword();
-
       geocoder.addressSearch(addr, (result, status) => {
         if (status === kakao.maps.services.Status.OK && result[0]) {
           return resolve(new kakao.maps.LatLng(result[0].y, result[0].x));
@@ -377,9 +419,7 @@ export default function DetailSaveCourse() {
       dupCount.set(key, count);
 
       const [ox, oy] = PIX_OFFSETS[(count - 1) % PIX_OFFSETS.length];
-      const content = `<div style="${baseStyle};margin-left:${ox}px;margin-top:${oy}px;">${
-        i + 1
-      }</div>`;
+      const content = `<div style="${baseStyle};margin-left:${ox}px;margin-top:${oy}px;">${i + 1}</div>`;
 
       const overlay = new kakao.maps.CustomOverlay({
         position: pos,
@@ -404,12 +444,12 @@ export default function DetailSaveCourse() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days, selectedDay]);
 
-  const imageFor = (item) => (item?.imgUrl || "").trim();
+  const imageFor = (item) => (item?.imgUrl || "").trim() || replaceDetail;
 
   return (
     <div className="CourseDetail">
       <Header />
-      <img className="save-detail-main-img" src={heroImg || replaceDetail} alt="지역대표이미지" />
+      <img className="save-detail-main-img" src={isVKImage(heroImg) ? heroImg : replaceDetail} alt="지역대표이미지" />
 
       <div className="save-detail-course-info">
         <div className="save-detail-course-info-left">
@@ -536,5 +576,3 @@ export default function DetailSaveCourse() {
     </div>
   );
 }
-
-

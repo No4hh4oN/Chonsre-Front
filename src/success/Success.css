@@ -1,0 +1,43 @@
+.GenerateSuccessBox {
+    width: 1200px;
+    min-height: calc(100vh - 94px);
+    display: flex;
+    flex-direction: column;
+    justify-self: center;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.successCarrier {
+    margin-top: 27px;
+}
+
+.successMention {
+    margin-top: 46px;
+    font-family: 'Pretendard-SemiBold';
+    font-size: 36px;
+    color: #2C2F33;
+    text-align: center;
+}
+
+.afterSuccess {
+    margin-top: 65px;
+    display: flex;
+    gap: 42px;
+}
+
+.afterSuccess button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 500px;
+    height: 86px;
+    background-color: #3AC581;
+    border-radius: 20px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-family: 'Pretendard-SemiBold';
+    font-size: 24px;
+    color: #FFFFFF;
+}

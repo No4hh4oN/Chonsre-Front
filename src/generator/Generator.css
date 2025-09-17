@@ -30,7 +30,6 @@
     opacity: 1;
 }
 
-
 .GeneratorBox_Blur {
     position: relative;
     width: 100%;
@@ -245,17 +244,17 @@
 }
 
 #farm {
-    background-image: url('/images/BgImg2.png');
+    background-image: url('/images/BgImg5.webp');
     background-size: cover;
 }
 
 #fishing {
-    background-image: url('/images/BgImg3.png');
+    background-image: url('/images/BgImg6.webp');
     background-size: cover;
 }
 
 #etc {
-    background-image: url('/images/BgImg4.png');
+    background-image: url('/images/BgImg7.webp');
     background-size: cover;
 }
 

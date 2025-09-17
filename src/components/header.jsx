@@ -23,7 +23,7 @@ export default function Header() {
         const res = await AxiosClient.get('/auth/me');
         setNickname(res.data.nickname);
 
-        // 우선순위: /auth/me.profileImg → localStorage.profileImg → null
+        // 우선순위: /auth/me.profileImg > localStorage.profileImg > null
         let img = res.data.profileImg || localStorage.getItem('profileImg') || null;
         if (img && img.startsWith('http://')) {
           img = img.replace('http://', 'https://'); // 혼합콘텐츠 방지
@@ -63,7 +63,7 @@ export default function Header() {
   const handleLogout = () => {
     setIsDropdowned(false);
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('profileImg'); // 로컬 저장된 프로필도 정리
+    localStorage.removeItem('profileImg');
     setAuthToken(null);
     setIsLoggedIn(false);
     setNickname('');
@@ -77,7 +77,7 @@ export default function Header() {
         <div className='Header_Title' onClick={() => navigator('/')}>촌스레</div>
         <div className='Header_Category'>
           <div id='create' className='Header_NavItem' onClick={() => navigator('/Generator')}>코스 만들기</div>
-          <div id='recommand' className='Header_NavItem'onClick={() => navigator('/CoursePick')}>추천 코스</div>
+          <div id='recommand' className='Header_NavItem' onClick={() => navigator('/CoursePick')}>추천 코스</div>
 
           {isLoggedIn ? (
             <div

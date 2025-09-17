@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */ 
+/* eslint-disable no-unused-vars */
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Header from "../components/header";
@@ -9,7 +9,7 @@ import editcourse from '/icons/editCourse.png';
 import replaceCourse from "/images/replaceCourse.png";
 import coursedelete from '/icons/delete.png';
 import Modal from "react-modal";
-import ProfileEditModal from "../components/profileModal"; 
+import ProfileEditModal from "../components/profileModal";
 
 Modal.setAppElement('#root');
 
@@ -68,7 +68,7 @@ export default function Mypage() {
     const [sy, sm, sd] = startStr.split("-").map(Number);
     const [ey, em, ed] = endStr.split("-").map(Number);
     const start = new Date(sy, sm - 1, sd, 0, 0, 0, 0).getTime();
-    const end   = new Date(ey, em - 1, ed, 0, 0, 0, 0).getTime();
+    const end = new Date(ey, em - 1, ed, 0, 0, 0, 0).getTime();
     const dayMs = 24 * 60 * 60 * 1000;
 
     // 포함(포함) 기준: 날짜 차이 + 1
@@ -133,7 +133,7 @@ export default function Mypage() {
 
   //   return startMid < todayMid;
   // }
-  
+
   // 리뷰 작성여부
   useEffect(() => {
     const onFocusOrVisible = () => {
@@ -169,7 +169,7 @@ export default function Mypage() {
     const days = Math.ceil(diff / msPerDay);
     return days < 0 ? 0 : days;
   }
-  
+
   /* ================= API: upcoming & past ================= */
   async function fetchUpcoming() {
     setUpcomingLoading(true);
@@ -333,9 +333,9 @@ export default function Mypage() {
           <img className='mypage-profile-img' src={photoUrl || profile} alt="프로필사진" />
           <div className='mypage-profile-name'>
             <span>{nickname || "닉네임"}</span>
-            <img 
-              src={editProfile} 
-              alt="프로필수정" 
+            <img
+              src={editProfile}
+              alt="프로필수정"
               style={{ cursor: 'pointer' }}
               onClick={() => setIsProfileModalOpen(true)}
             />
@@ -345,7 +345,7 @@ export default function Mypage() {
 
           <span style={{ cursor: 'pointer' }} onClick={() => setActiveTab('records')}>코스 기록</span>
           <span style={{ cursor: 'pointer' }} onClick={() => setActiveTab('scheduled')}>예정된 코스</span>
-          <span style={{ cursor: 'pointer' }} onClick={() => {setIsDelAccountModalOpen(true)}}>
+          <span style={{ cursor: 'pointer' }} onClick={() => { setIsDelAccountModalOpen(true) }}>
             회원탈퇴
           </span>
         </div>
@@ -477,14 +477,14 @@ export default function Mypage() {
                     </div>
 
                     <div className='record-two-button'>
-                      <img 
-                        src={editcourse} 
-                        alt="더보기" 
+                      <img
+                        src={editcourse}
+                        alt="더보기"
                         className="record-menu-trigger"
                         onClick={(e) => {
                           e.stopPropagation();
                           setOpenMenuId(openMenuId === item.savedId ? null : item.savedId);
-                        }}                                        
+                        }}
                       />
                       <button className='scheduled-d-day'>
                         <span>촌캉스까지</span>
@@ -530,9 +530,9 @@ export default function Mypage() {
         </div>
       </div>
 
-      <ProfileEditModal 
-        isOpen={isProfileModalOpen} 
-        onClose={() => setIsProfileModalOpen(false)} 
+      <ProfileEditModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
       />
       <Modal
         isOpen={isDelAccountModalOpen}

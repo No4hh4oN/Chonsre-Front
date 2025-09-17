@@ -11,7 +11,8 @@ export default function Auth() {
 
     const loginWithKakao = () => {
         const REST_API_KEY = "cee9b5f605698f9a2407eab0ca03c191";
-        const REDIRECT_URI = "https://chonsre.vercel.app/Auth";
+        const REDIRECT_URI = "https://www.chonsre.org/Auth";
+        // const REDIRECT_URI = "https://chonsre.vercel.app/Auth";
         // const REDIRECT_URI = "http://localhost:5173/Auth";
         const kakaoURL = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}`;
         window.location.href = kakaoURL;

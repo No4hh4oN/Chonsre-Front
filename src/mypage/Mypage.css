@@ -1,50 +1,57 @@
-:root { --header-h: 94px; }
+:root {
+    --header-h: 94px;
+}
 
-.mypage-contents-box{
+.mypage-contents-box {
     width: 100%;
     height: calc(100vh - var(--header-h));
     display: flex;
     flex-direction: row;
     /* align-items: center; */
     justify-content: center;
-    overflow: hidden;      /*전체스크롤 막기*/
+    overflow: hidden;
+    /*전체스크롤 막기*/
 }
 
-.mypage-left-box{
+.mypage-left-box {
     display: flex;
     flex-direction: column;
-    align-items:flex-start;
-    width: 250px; 
+    align-items: flex-start;
+    width: 250px;
     flex-shrink: 0;
     margin-left: 25%;
     margin-top: 70px;
 
 }
-.mypage-profile-img{
+
+.mypage-profile-img {
     width: 132px;
     height: 132px;
     border-radius: 50%;
     margin-bottom: 15px;
 }
 
-.mypage-profile-name{
+.mypage-profile-name {
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 15px;
     margin-bottom: 7px;
 }
-.mypage-profile-name img{
+
+.mypage-profile-name img {
     width: 31px;
     height: 31px;
 }
-.mypage-profile-name span{
+
+.mypage-profile-name span {
     font-family: 'Pretendard-SemiBold';
     font-weight: 600;
     font-size: 32px;
     color: #2C2F33;
 }
-.mypage-email{
+
+.mypage-email {
     font-family: 'Pretendard-Medium';
     font-weight: 500;
     font-size: 18px;
@@ -52,7 +59,8 @@
     margin-bottom: 100px;
 }
 
-.mypage-left-box >span:nth-of-type(1),.mypage-left-box> span:nth-of-type(2){
+.mypage-left-box>span:nth-of-type(1),
+.mypage-left-box>span:nth-of-type(2) {
     font-family: 'Pretendard-SemiBold';
     font-weight: 600;
     font-size: 22px;
@@ -61,7 +69,7 @@
     margin-bottom: 50px;
 }
 
-.mypage-left-box>span:nth-of-type(3){
+.mypage-left-box>span:nth-of-type(3) {
     font-family: 'Pretendard-Medium';
     font-weight: 500;
     font-size: 20px;
@@ -69,24 +77,25 @@
     margin-top: 400px;
 }
 
-.mypage-right-gray-box{
-    flex: 1;     
+.mypage-right-gray-box {
+    flex: 1;
     background-color: #F8F9FB;
     display: flex;
     flex-direction: column;
-    min-height: 0;             /* 자식에서 overflow 작동 */
+    min-height: 0;
+    /* 자식에서 overflow 작동 */
     overflow-y: auto;
-    padding-top: 72px ;
+    padding-top: 72px;
     padding-left: 69px;
 }
 
-.record-box img{
+.record-box img {
     width: 172px;
     height: 172px;
     border-radius: 16px;
 }
 
-.record-box{
+.record-box {
     width: 892px;
     height: 218px;
     flex: 0 0 auto;
@@ -97,36 +106,42 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
+    gap: 10px;
     margin-bottom: 40px;
     position: relative;
 }
-.record-course-info{
+
+.record-course-info {
     display: flex;
     flex-direction: column;
     gap: 7px;
     margin-right: 180px;
     margin-left: 20px;
 }
-.record-two-button{
+
+.record-two-button {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
-.record-course-name{
+
+.record-course-name {
     font-family: 'Pretendard-SemiBold';
     font-weight: 600;
     font-size: 24px;
-    width: 310px;
+    width: 290px;
     color: #2C2F33;
 }
-.record-course-period{
+
+.record-course-period {
     font-family: 'Pretendard-Medium';
     font-weight: 500;
     font-size: 16px;
     color: #8F959B;
 }
 
-.record-write-review,.record-course-detail{
+.record-write-review,
+.record-course-detail {
     width: 162px;
     height: 50px;
     border-radius: 12px;
@@ -138,17 +153,16 @@
     text-align: center;
     border: none;
     color: #FFFFFF;
-    cursor: pointer;
 }
 
-.record-course-detail{
+.record-course-detail {
     background-color: #FFFFFF;
     color: #2C2F33;
     padding: 14px 20px;
     border: 2px solid #E7ECF1
 }
 
-.record-course-detail-2{
+.record-course-detail-2 {
     background-color: #3AC581;
     color: #FFFFFF;
     padding: 14px 20px;
@@ -161,7 +175,7 @@
     font-size: 18px;
 }
 
-.scheduled-d-day{
+.scheduled-d-day {
     display: flex;
     flex-direction: column;
     width: 162px;
@@ -172,14 +186,15 @@
     justify-content: center;
 }
 
-.scheduled-d-day span:nth-of-type(1){
+.scheduled-d-day span:nth-of-type(1) {
     font-family: 'Pretendard-Medium';
     font-weight: 500;
     font-size: 16px;
     text-align: center;
     color: #8F959B;
 }
-.scheduled-d-day span:nth-of-type(2){
+
+.scheduled-d-day span:nth-of-type(2) {
     font-family: 'Pretendard-SemiBold';
     font-weight: 600;
     font-size: 28px;
@@ -187,7 +202,7 @@
     color: #2C2F33;
 }
 
-.record-two-button img{
+.record-two-button img {
     width: 30px;
     height: 30px;
     margin-left: 130px;
@@ -196,12 +211,12 @@
 }
 
 /* 활성 탭만 검정으로 오버라이드 */
-.mypage-left-box[data-active="records"] > span:nth-of-type(1),
-.mypage-left-box[data-active="scheduled"] > span:nth-of-type(2) {
+.mypage-left-box[data-active="records"]>span:nth-of-type(1),
+.mypage-left-box[data-active="scheduled"]>span:nth-of-type(2) {
     color: #2C2F33;
 }
 
-.record-menu{
+.record-menu {
     z-index: 20;
     position: absolute;
     display: flex;
@@ -220,48 +235,45 @@
     right: 12px;
     top: 45px;
 }
-/* .record-menu-edit img{
-    width: 26px;
-    height: 26px;
-} */
-.record-menu-delete img{
+
+.record-menu-edit img {
     width: 26px;
     height: 26px;
 }
 
-/* .record-menu-edit{
+.record-menu-delete img {
+    width: 26px;
+    height: 26px;
+}
+
+.record-menu-edit {
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 10px;
     color: #656B70;
     margin-right: 10px;
-} */
-.record-menu-delete{
+}
+
+.record-menu-delete {
     color: #F66A6A;
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 10px;
     margin-right: 10px;
-    background-color: #ffffff;
-    border: none;
-    font-family: 'Pretendard- Medium';
-    font-weight: 500;
-    outline: none;
-    font-size: 18px;
 }
 
 
-.DelAccount-modal{
+.DelAccount-modal {
     width: 658px;
     height: 436px;
     border-radius: 30px;
     background-color: #FFFFFF;
     border: none;
     outline: none;
-    position: fixed;      
-    top: 50%;             
+    position: fixed;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     border: none;
@@ -272,14 +284,14 @@
     align-items: center;
 }
 
-.modal-del-account-box{
+.modal-del-account-box {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
-.modal-del-account-box span:first-child{
+.modal-del-account-box span:first-child {
     font-family: 'Pretendard-SemiBold';
     font-weight: 600;
     font-size: 32px;
@@ -288,20 +300,23 @@
     margin-bottom: 50px;
     margin-top: 50px;
 }
-.modal-del-account-box:last-child{
+
+.modal-del-account-box:last-child {
     font-family: 'Pretendard-Medium';
     font-weight: 500;
     font-size: 22px;
     text-align: center;
     color: #656B70;
 }
-.modal-del-account-buttons{
+
+.modal-del-account-buttons {
     margin-top: 70px;
     gap: 20px;
     display: flex;
     flex-direction: row;
 }
-.modal-del-account-buttons button:first-child{
+
+.modal-del-account-buttons button:first-child {
     width: 264px;
     height: 75px;
     border-radius: 20px;
@@ -314,7 +329,8 @@
     border: none;
     outline: none;
 }
-.modal-del-account-buttons button:last-child{
+
+.modal-del-account-buttons button:last-child {
     width: 264px;
     height: 75px;
     border-radius: 20px;
@@ -325,9 +341,4 @@
     font-size: 24px;
     text-align: center;
     border: none;
-}
-
-.record-two-button .record-write-review.reviewed {
-    background-color: #8F959B;
-    cursor: pointer;
 }

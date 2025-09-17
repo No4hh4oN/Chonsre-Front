@@ -3,7 +3,7 @@ import Header from "../components/header";
 import carrier from "/images/carrier.png";
 import pickdrop from "/images/dropdown-up.png";
 import pickdowndrop from "/images/dropdown-down.png";
-import regionImg from "/images/BgImg2.png";
+import regionImg from "/images/BgImg2.webp";
 import backarrow from "/images/arrow-back.png";
 import nextarrow from "/images/arrow-next.png";
 import { useState, useEffect } from "react";
@@ -33,9 +33,9 @@ function getCategory(row) {
 }
 
 const EXCLUDE_KEYWORDS = [
-  "펜션","모텔","게스트하우스","영업소","사무소","수련원","크루즈","레저",
-  "기념관","미술관","전시관","터미널","주식회사","(주)","고속㈜","사업소",
-  "매표소","유람선","동부연맹","휴게소","케이블카","박물관","리조트","호텔","HOTEL"
+  "펜션", "모텔", "게스트하우스", "영업소", "사무소", "수련원", "크루즈", "레저",
+  "기념관", "미술관", "전시관", "터미널", "주식회사", "(주)", "고속㈜", "사업소",
+  "매표소", "유람선", "동부연맹", "휴게소", "케이블카", "박물관", "리조트", "호텔", "HOTEL"
 ];
 
 function excludeByKeywords(row) {
@@ -126,8 +126,8 @@ async function fetchAccommodations({ pageNo = 1, numOfRows = 120 }) {
   const r = await axios.get("https://apis.data.go.kr/B551011/KorService2/areaBasedList2",
     { params: baseParams({ contentTypeId: 32, areaCode: 38, pageNo, numOfRows }) });
   let items = r?.data?.response?.body?.items?.item || [];
-  const BAD = ["모텔","호텔","리조트","호스텔","풀빌라","게스트","펜션","라마다"];
-  items = items.filter((it) => !BAD.some(kw => (it.title||"").includes(kw) || (it.addr1||"").includes(kw)));
+  const BAD = ["모텔", "호텔", "리조트", "호스텔", "풀빌라", "게스트", "펜션", "라마다"];
+  items = items.filter((it) => !BAD.some(kw => (it.title || "").includes(kw) || (it.addr1 || "").includes(kw)));
   return items;
 }
 function extractRegionFromTour(addr1 = "") {
@@ -166,20 +166,20 @@ function makePlansByRegion_TOUR({ natureItems = [], foodItems = [], stayItems = 
       ];
     }
     if (N >= 6 && F >= 3 && S >= 2) {
-      plans[region].twoday = [0,1,2].map((d) => ({
+      plans[region].twoday = [0, 1, 2].map((d) => ({
         day: d + 1,
-        관광지1: cats.관광지[2*d],
-        음식점:  cats.음식점[d],
-        관광지2: cats.관광지[2*d + 1],
+        관광지1: cats.관광지[2 * d],
+        음식점: cats.음식점[d],
+        관광지2: cats.관광지[2 * d + 1],
         ...(d < 2 ? { 숙소: cats.숙소[d] } : {}),
       }));
     }
     if (N >= 8 && F >= 4 && S >= 3) {
-      plans[region].threeday = [0,1,2,3].map((d) => ({
+      plans[region].threeday = [0, 1, 2, 3].map((d) => ({
         day: d + 1,
-        관광지1: cats.관광지[2*d],
-        음식점:  cats.음식점[d],
-        관광지2: cats.관광지[2*d + 1],
+        관광지1: cats.관광지[2 * d],
+        음식점: cats.음식점[d],
+        관광지2: cats.관광지[2 * d + 1],
         ...(d < 3 ? { 숙소: cats.숙소[d] } : {}),
       }));
     }
@@ -221,7 +221,7 @@ function makePlansByRegion_RURAL(rows = [], foodByRegion = {}, stayByRegion = {}
     (grouped[region] ??= []).push(r);
   }
   Object.values(grouped).forEach(arr =>
-    arr.sort((a, b) => (a["장소명"]||"").localeCompare(b["장소명"]||""))
+    arr.sort((a, b) => (a["장소명"] || "").localeCompare(b["장소명"] || ""))
   );
 
   const plans = {};
@@ -495,7 +495,7 @@ export default function CoursePick() {
             </div>
             {isTypeDropdownOpen && (
               <div className="pick-dropdown-menu">
-                {["농촌","어촌","그외"].map((type) => (
+                {["농촌", "어촌", "그외"].map((type) => (
                   <div
                     key={type}
                     className="pick-dropdown-item"

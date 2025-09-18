@@ -299,6 +299,11 @@ export default function Mypage() {
 
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.message || `요청 실패 (status ${res.status})`);
+      alert("탈퇴 완료");
+      localStorage.clear();
+      navigator("/", { replace: true });
+      window.location.reload();
+
       setDelStep("done");
     } catch (e) {
       setUnlinkError(e instanceof Error ? e.message : "알 수 없는 오류 발생");

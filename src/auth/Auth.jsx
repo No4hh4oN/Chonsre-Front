@@ -42,6 +42,7 @@ export default function Auth() {
                     localStorage.setItem("accessToken", accessToken);
                     if (profileImg) localStorage.setItem("profileImg", profileImg);
                     if (userNickname) localStorage.setItem("nickname", userNickname);
+
                     if (userNickname) {
                         window.location.href = "/";
                     } else {

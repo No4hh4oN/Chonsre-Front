@@ -5,12 +5,17 @@ import { useNavigate } from 'react-router-dom';
 import defaultProfile from '/icons/default.png';
 import dropdown from '/icons/dropdown1.png';
 import AxiosClient, { setAuthToken } from "../AxiosClient";
+import ProfileEditModal from "./profileModal";
+
 
 export default function Header() {
   const navigator = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [nickname, setNickname] = useState('');
   const [profileImg, setProfileImg] = useState(null);
+
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
 
   useEffect(() => {
     const accessToken = localStorage.getItem('accessToken');
@@ -71,6 +76,24 @@ export default function Header() {
     navigator('/');
   };
 
+  // 프로필 변경사항 바로 반영
+  useEffect(() => {
+    const onProfileUpdated = (e) => {
+      const { profileImgUrl, nickname: newNick } = e.detail || {};
+      if (typeof profileImgUrl === "string") {
+        let img = profileImgUrl;
+        if (img && img.startsWith("http://")) img = img.replace("http://", "https://");
+        setProfileImg(img || null);
+      }
+      if (typeof newNick === "string") {
+        setNickname(newNick);
+      }
+    };
+    window.addEventListener("profile:updated", onProfileUpdated);
+    return () => window.removeEventListener("profile:updated", onProfileUpdated);
+  }, []);
+
+
   return (
     <div className='Header'>
       <div className='Header_Box'>
@@ -125,13 +148,23 @@ export default function Header() {
               </div>
             </div>
             <div className='Header_UserMenu_NavBox'>
-              <button id='EditProfile' className='Header_UserMenu_NavItems'>프로필 수정</button>
+              <button
+                id='EditProfile'
+                className='Header_UserMenu_NavItems'
+                onClick={() => { setIsDropdowned(false); setIsProfileModalOpen(true); }}
+              >
+                프로필 수정
+              </button>
               <button id='MyPage' className='Header_UserMenu_NavItems' onClick={() => navigator('/Mypage')}>마이페이지</button>
               <button id='Logout' className='Header_UserMenu_NavItems' onClick={handleLogout}>로그아웃</button>
             </div>
           </div>
         </div>
       )}
+      <ProfileEditModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
     </div>
   );
 }

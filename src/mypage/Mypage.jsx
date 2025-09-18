@@ -111,6 +111,17 @@ export default function Mypage() {
     }
   }
 
+  //프로필 사진 변경 된거 반영
+  useEffect(() => {
+    const onProfileUpdated = (e) => {
+      const { nickname: nn, profileImgUrl: pu } = e.detail || {};
+      if (typeof nn === "string") setNickname(nn);
+      if (typeof pu === "string") setPhotoUrl(pu || profile);
+    };
+    window.addEventListener("profile:updated", onProfileUpdated);
+    return () => window.removeEventListener("profile:updated", onProfileUpdated);
+  }, []);
+
   // 리뷰 작성여부 갱신
   useEffect(() => {
     const onFocusOrVisible = () => {

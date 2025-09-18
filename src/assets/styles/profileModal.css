@@ -147,3 +147,6 @@
     color: #FFFFFF;
     border: none;
 }
+
+.ReactModal__Overlay { z-index: 2147483647 !important; }
+.ProfileEdit-modal { position: relative; z-index: 2147483647 !important; }

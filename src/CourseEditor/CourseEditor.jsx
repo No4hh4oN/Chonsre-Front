@@ -181,13 +181,6 @@ export default function CourseEditor() {
 
   const cancelEdit = () => setIsEditing(false);
 
-  const toImgOrNull = (url, type = "place") => {
-    if (!url) return null;
-    if (type === "place" && url === defaultImg) return url;
-    if (type === "accom" && url === defaultAccom) return url;
-    return url;
-  };
-
   const buildCoursePayload = (c) => ({
     title: c.courseTitle || c.name || "여행지",
     days: (c.days || []).map((d) => ({
@@ -196,7 +189,7 @@ export default function CourseEditor() {
         placeName: p.name,
         description: p.desc || "",
         address: p.address || "",
-        imgUrl: toImgOrNull(p.image, "place"),
+        imgUrl: p.image || defaultImg,
       })),
     })),
     accommodation:
@@ -205,7 +198,7 @@ export default function CourseEditor() {
           name: c.accommodations[0].name || "",
           address: c.accommodations[0].address || "",
           description: c.accommodations[0].desc || "",
-          imgUrl: toImgOrNull(c.accommodations[0].image, "accom"),
+          imgUrl: c.accommodations[0].image || defaultAccom,
         }
         : null,
   });
@@ -258,25 +251,32 @@ export default function CourseEditor() {
 
   // 제목만 수정
   const saveTitleEdit = async () => {
-  commitTitle(); // 로컬 상태 업데이트
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (token) setAuthToken(token);
 
-  try {
-    const token = localStorage.getItem("accessToken");
-    if (token) setAuthToken(token);
+      const currentCourse = structuredClone(courses[selectedCourse]);
+      if (!currentCourse?.courseId) return;
 
-    const currentCourse = courses[selectedCourse];
-    if (!currentCourse?.courseId) return;
+      currentCourse.courseTitle = (titleDraft || "").trim() || "여행지";
 
-    const payload = buildCoursePayload(currentCourse); // days 그대로 포함됨
-    await AxiosClient.put(`/recommend/courses/${currentCourse.courseId}`, payload, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+      const payload = buildCoursePayload(currentCourse);
+      await AxiosClient.put(`/recommend/courses/${currentCourse.courseId}`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    alert("제목이 저장되었습니다.");
-  } catch (err) {
-    alert("제목 저장에 실패했습니다.");
-  }
-};
+      setCourses((prev) => {
+        const next = structuredClone(prev);
+        next[selectedCourse] = currentCourse;
+        return next;
+      });
+
+      setIsEditingTitle(false);
+      alert("제목이 저장되었습니다.");
+    } catch (err) {
+      alert("제목 저장에 실패했습니다.");
+    }
+  };
 
 
 
@@ -484,6 +484,12 @@ export default function CourseEditor() {
         setFinalizing(false);
         return;
       }
+      
+      const payload = buildCoursePayload(currentCourse);
+      
+      await AxiosClient.put(`/recommend/courses/${currentCourse.courseId}`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       const res = await AxiosClient.post(
         `/recommend/courses/${currentCourse.courseId}/save`,
@@ -491,11 +497,9 @@ export default function CourseEditor() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // 응답 예: { savedId, courseId, groupId }
       const { savedId, courseId, groupId } = res.data || {};
       navigator('/Success');
     } catch (err) {
-      console.error("코스 확정(저장) 실패:", err);
       alert("코스 확정에 실패했습니다. 다시 시도해 주세요.");
     } finally {
       setFinalizing(false);

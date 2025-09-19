@@ -188,7 +188,7 @@ export default function MyReview() {
         setIsSaved(true);
         setIsEditing(false);
       } catch (e) {
-        console.error(e);
+        // console.error(e);
       }
     }
 
@@ -229,7 +229,7 @@ export default function MyReview() {
       setIsEditing(false);
       setMenuOpen(false);
     } catch (e) {
-      alert(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
+      // alert(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
     }
   }
 
@@ -263,7 +263,7 @@ export default function MyReview() {
       setIsEditing(false);
       setMenuOpen(false);
     } catch (e) {
-      alert(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
+      // alert(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
     }
   }
 

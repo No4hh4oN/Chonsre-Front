@@ -48,7 +48,7 @@ export default function Auth() {
                         setIsLoggedIn(true);
                     }
                 } catch (err) {
-                    console.error(err);
+                    // console.error(err);
                 }
             };
 
@@ -63,7 +63,7 @@ export default function Auth() {
             alert(res.data.message);
             window.location.href = "/";
         } catch (err) {
-            console.error(err);
+            // console.error(err);
         }
     };
 

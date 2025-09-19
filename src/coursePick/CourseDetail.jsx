@@ -313,10 +313,10 @@ function makePlansByRegion_RURAL(rows = [], foodByRegion = {}, stayByRegion = {}
   return plans;
 }
 
-/* ================== 상세 페이지 ================== */
+// 상세 페이지
 export default function CourseDetail() {
   const location = useLocation();
-  const { id } = useParams();           // /CourseDetail/:id
+  const { id } = useParams();
   const isOther = /^other-/.test(id || "");
   const isRural = /^rural-/.test(id || "");
 
@@ -342,14 +342,14 @@ export default function CourseDetail() {
   const mapRef = useRef(null);
   const geocoderRef = useRef(null);
   const markersRef = useRef([]);
-  const cachedRowsRef = useRef(null); // 어촌 원천 캐시
+  const cachedRowsRef = useRef(null);
   const placesRef = useRef(null);
-  const ruralRowsRef = useRef(null);  // 농촌 원천 캐시
+  const ruralRowsRef = useRef(null);
 
-  // === 저장 진행 상태 ===
+  //  저장 진행 상태 
   const [saving, setSaving] = useState(false);
 
-  // ===== GPT 설명 생성 상태 =====
+  //  GPT 설명 생성 상태
   const OPENAI_KEY = import.meta.env.VITE_GPT_KEY;
 
   const [placeDescs, setPlaceDescs] = useState({});
@@ -430,7 +430,7 @@ export default function CourseDetail() {
       });
 
       if (!res.ok) {
-        console.error("OpenAI API error:", await res.text());
+        // console.error("OpenAI API error:", await res.text());
         return "";
       }
       const json = await res.json();
@@ -441,8 +441,9 @@ export default function CourseDetail() {
       setPlaceDescs((prev) => ({ ...prev, [placeKeyOf(it)]: text }));
       return text;
     } catch (e) {
-      if (e?.name !== "AbortError") console.error(e);
-      return "";
+      if (e?.name !== "AbortError")
+        // console.error(e);
+        return "";
     } finally {
       setDescLoadingKey(null);
     }
@@ -470,7 +471,7 @@ export default function CourseDetail() {
     return 1;
   }
 
-  // === 날짜 정규화(YYYY-MM-DD) ===
+  // 날짜 정규화(YYYY-MM-DD)
   function normalizeDateInput(s) {
     if (!s) return "";
     const digits = String(s).replace(/[^\d]/g, "");
@@ -513,13 +514,12 @@ export default function CourseDetail() {
         });
         if (parsed?.heroImage) setHeroImg(parsed.heroImage);
       } catch (err) {
-        console.warn("lastCourse JSON 파싱 실패:", err);
         sessionStorage.removeItem("lastCourse");
       }
     }
   }, [location.state]);
 
-  // TourAPI 소스 1회 로드(전남 전체)
+  // TourAPI 소스 로드(전남 전체)
   useEffect(() => {
     (async () => {
       try {
@@ -533,7 +533,7 @@ export default function CourseDetail() {
         setTourStay(s);
         setImgIndex(buildImageIndex(n, f, s));
       } catch (e) {
-        console.error("TourAPI 로드 실패:", e);
+        // console.error("TourAPI 로드 실패:", e);
       }
     })();
   }, []);
@@ -604,9 +604,9 @@ export default function CourseDetail() {
 
       const key = PERIOD_KEY_MAP[period] || PERIOD_KEY_MAP[period.replace(/\s/g, "")];
 
-      // ===== 농촌 (스마트주 JSON + TourAPI 음식/숙소) =====
+      // 농촌 (스마트주 JSON + TourAPI 음식/숙소)
       if (isRural) {
-        // TourAPI 보장
+        // TourAPI
         let n = tourNature, f = tourFood, s = tourStay;
         if (!n?.length || !f?.length || !s?.length) {
           try {
@@ -619,7 +619,7 @@ export default function CourseDetail() {
             setTourNature(n2); setTourFood(f2); setTourStay(s2);
             setImgIndex(buildImageIndex(n2, f2, s2));
           } catch (e) {
-            console.error("TourAPI 재로드 실패:", e);
+            // console.error("TourAPI 재로드 실패:", e);
           }
         }
         const foodByRegion = groupTourByRegion(f);
@@ -649,7 +649,7 @@ export default function CourseDetail() {
         return;
       }
 
-      // ===== 그외 (TourAPI 기반, 하루 2관광지) =====
+      // 그외 (TourAPI 기반, 하루 2관광지)
       if (isOther) {
         let n = tourNature, f = tourFood, s = tourStay;
         if (!n?.length || !f?.length || !s?.length) {
@@ -663,7 +663,7 @@ export default function CourseDetail() {
             setTourNature(n2); setTourFood(f2); setTourStay(s2);
             setImgIndex(buildImageIndex(n2, f2, s2));
           } catch (e) {
-            console.error("TourAPI 재로드 실패:", e);
+            // console.error("TourAPI 재로드 실패:", e);
           }
         }
 
@@ -702,7 +702,7 @@ export default function CourseDetail() {
         return;
       }
 
-      // ===== 어촌 (ODcloud 기반) =====
+      // 어촌 (ODcloud 기반)
       let rows = cachedRowsRef.current;
       if (!rows) {
         rows = await fetchAllOdcloud({ url: API1, key: API1_KEY });
@@ -756,7 +756,6 @@ export default function CourseDetail() {
       setSelectedIdx(0);
     };
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseInfo, isOther, isRural, tourNature, tourFood, tourStay]);
 
   // 지도 마커
@@ -816,7 +815,6 @@ export default function CourseDetail() {
     const dupCount = new Map();
 
     for (let i = 0; i < items.length; i++) {
-      // eslint-disable-next-line no-await-in-loop
       const pos = await geocodeOne(kakao, geocoder, places, items[i], courseInfo.region);
       if (!pos) continue;
 
@@ -861,10 +859,9 @@ export default function CourseDetail() {
   useEffect(() => {
     if (days.length > 0) drawMarkersForDay(selectedDay - 1);
     else clearMarkers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days, selectedDay]);
 
-  /* ================== 이미지 선택 로직 (수정 지점) ================== */
+  // 이미지 선택 로직 (수정 지점)
   const categoryPlaceholder = (item) => {
     const cat = (item?.category || "").trim();
     if (cat.includes("음식")) return foodImg;
@@ -897,10 +894,9 @@ export default function CourseDetail() {
       const img = imageFor(first);
       if (img) setHeroImg(img);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days, imgIndex]);
 
-  // === 서버 페이로드 빌드 ===
+  // 서버 페이로드 빌드
   function buildPayload() {
     const inpStartDate = normalizeDateInput(startDate);
     const inpEndDate = normalizeDateInput(endDate);
@@ -935,7 +931,7 @@ export default function CourseDetail() {
         inpStartDate,
         inpEndDate,
         inpRegion: regionProvince,
-        inpAdultCnt: 2,   // 필요 시 UI 연동 가능
+        inpAdultCnt: 2,
         inpChildCnt: 0,
         inpBabyCnt: 0,
         inpStyle: "etc",
@@ -948,13 +944,13 @@ export default function CourseDetail() {
     };
   }
 
-  // === 저장 실행 ===
+  // 저장 실행
   async function handleSaveCourse() {
     try {
       if (saving) return;
       const token = localStorage.getItem("accessToken");
       if (!token) {
-        window.alert("로그인이 필요합니다. (토큰이 없습니다)");
+        window.alert("로그인이 필요합니다.");
         return;
       }
 
@@ -981,10 +977,9 @@ export default function CourseDetail() {
         }
       );
 
-      console.log("코스 저장 성공:", res.data);
       window.alert("코스가 저장되었습니다.");
     } catch (err) {
-      console.error("코스 저장 실패:", err);
+      // console.error("코스 저장 실패:", err);
       const msg = err?.response?.data?.message || err?.message || "알 수 없는 오류";
       window.alert(`저장에 실패했습니다: ${msg}`);
     } finally {

@@ -32,7 +32,7 @@ export default function DetailSaveCourse() {
   const placesRef = useRef(null);
   const markersRef = useRef([]);
 
-  // ===== GPT 설명 생성 상태 (원래 코드 유지) =====
+  // GPT 설명 생성 상태 (원래 코드 유지) 
   const OPENAI_KEY = import.meta.env.VITE_GPT_KEY;
   const [placeDescs, setPlaceDescs] = useState({});
   const [descLoadingKey, setDescLoadingKey] = useState(null);
@@ -43,7 +43,7 @@ export default function DetailSaveCourse() {
     return days?.[selectedDay - 1]?.[selectedIdx] || null;
   }, [days, selectedDay, selectedIdx]);
 
-  /* ============ 유틸 ============ */
+  // 유틸
   const PLACEHOLDER_LOCAL_SET = new Set([
     "/images/place.png",
     "/images/food.png",
@@ -111,7 +111,7 @@ export default function DetailSaveCourse() {
       });
 
       if (!res.ok) {
-        console.error("OpenAI API error:", await res.text());
+        // console.error("OpenAI API error:", await res.text());
         return "";
       }
       const json = await res.json();
@@ -122,7 +122,8 @@ export default function DetailSaveCourse() {
       setPlaceDescs((prev) => ({ ...prev, [placeKeyOf(it)]: text }));
       return text;
     } catch (e) {
-      if (e?.name !== "AbortError") console.error(e);
+      if (e?.name !== "AbortError")
+        // console.error(e);
       return "";
     } finally {
       setDescLoadingKey(null);
@@ -136,10 +137,9 @@ export default function DetailSaveCourse() {
     const key = placeKeyOf(it);
     if (placeDescs[key]) return;
     generatePlaceDescription(it, courseInfo.region);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPlace]);
 
-  /* ===== 저장된/코스 상세 불러오기 ===== */
+  // 저장된/코스 상세 불러오기
   useEffect(() => {
     if (!id) return;
     (async () => {
@@ -257,7 +257,6 @@ export default function DetailSaveCourse() {
         console.error(e);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   /* ===== 유틸 ===== */
@@ -402,7 +401,6 @@ export default function DetailSaveCourse() {
     const dupCount = new Map();
 
     for (let i = 0; i < items.length; i++) {
-      // eslint-disable-next-line no-await-in-loop
       const pos = await geocodeOne(
         kakao,
         geocoder,
@@ -441,7 +439,6 @@ export default function DetailSaveCourse() {
   useEffect(() => {
     if (days.length > 0) drawMarkersForDay(selectedDay - 1);
     else clearMarkers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days, selectedDay]);
 
   const imageFor = (item) => (item?.imgUrl || "").trim() || replaceDetail;

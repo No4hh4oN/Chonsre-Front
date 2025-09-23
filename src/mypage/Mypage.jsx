@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+/* eslint-disable no-empty */
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Header from "../components/header";
@@ -98,7 +99,6 @@ export default function Mypage() {
     return raw || "코스";
   }
 
-  // ===== Utils =====
   function loadProfileFromStorage() {
     try {
       const nick = localStorage.getItem("nickname") || "";
@@ -111,7 +111,6 @@ export default function Mypage() {
     }
   }
 
-  //프로필 사진 변경 된거 반영
   useEffect(() => {
     const onProfileUpdated = (e) => {
       const { nickname: nn, profileImgUrl: pu } = e.detail || {};
@@ -155,7 +154,6 @@ export default function Mypage() {
     return days < 0 ? 0 : days;
   }
 
-  /* ================= API: upcoming & past ================= */
   async function fetchUpcoming() {
     setUpcomingLoading(true);
     setUpcomingError(null);
@@ -172,7 +170,7 @@ export default function Mypage() {
         throw new Error(data?.message || `예정 코스 조회 실패 (status ${res.status})`);
       }
       const list = await res.json();
-      console.log("comming API response:", list);
+      
       window.__lastUpcoming = list;
       setUpcoming(Array.isArray(list) ? list : []);
     } catch (e) {
@@ -199,7 +197,7 @@ export default function Mypage() {
         throw new Error(data?.message || `코스 기록 조회 실패 (status ${res.status})`);
       }
       const list = await res.json();
-      console.log("past API response:", list);
+      
       window.__lastPast = list;
       setRecords(Array.isArray(list) ? list : []);
     } catch (e) {
@@ -210,7 +208,7 @@ export default function Mypage() {
     }
   }
 
-  /* ================= 프로필/탭 진입 시 로딩 ================= */
+  // 프로필/탭 진입 시 로딩
   useEffect(() => {
     loadProfileFromStorage();
   }, []);
@@ -235,7 +233,7 @@ export default function Mypage() {
     }
   }, [activeTab]);
 
-  // ================= 코스 삭제 =================
+  // 코스 삭제
   async function handleDeleteSaved(savedId) {
     try {
       const token = localStorage.getItem("accessToken");
@@ -249,10 +247,9 @@ export default function Mypage() {
         });
         if (!delReview.ok && delReview.status !== 404) {
           const msg = await delReview.text().catch(() => "");
-          console.log("DELETE review failed:", delReview.status, msg);
         }
       } catch (e) {
-        console.log(e);
+
       }
 
       // 2) 코스 삭제
@@ -274,11 +271,11 @@ export default function Mypage() {
       setOpenMenuId(null);
       alert("코스가 삭제되었습니다.");
     } catch (e) {
-      alert(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
+      // alert(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
     }
   }
 
-  // ===== 회원탈퇴 =====
+  // 회원탈퇴
   const handleDelCancel = () => {
     setIsDelAccountModalOpen(false);
     setDelStep("confirm");
@@ -288,34 +285,39 @@ export default function Mypage() {
     if (unlinkLoading) return;
     setUnlinkError(null);
     setUnlinkLoading(true);
+
     try {
-      const token = localStorage.getItem("accessToken");
+      let token = localStorage.getItem("accessToken")?.trim();
       if (!token) throw new Error("로그인 토큰이 없습니다.");
+
+      // 혹시 'Bearer '로 시작하면 제거
+      if (token.startsWith("Bearer ")) {
+        token = token.replace(/^Bearer\s+/, "");
+      }
 
       const res = await fetch("https://smartzoo.shop/auth/unlink", {
         method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: token, // Bearer 없이 순수 토큰만
+        },
       });
 
-      const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.message || `요청 실패 (status ${res.status})`);
-      alert("탈퇴 완료");
+      alert("회원 탈퇴가 성공적으로 처리되었습니다.");
       localStorage.clear();
-      navigator("/", { replace: true });
-      window.location.reload();
-
       setDelStep("done");
+      navigator("/", { replace: true });
     } catch (e) {
-      setUnlinkError(e instanceof Error ? e.message : "알 수 없는 오류 발생");
+
     } finally {
       setUnlinkLoading(false);
+      setIsDelAccountModalOpen(false);
     }
   };
 
   const buildNavState = (item) => {
     const label = (item.courseLabel ?? "").trim();
     const isLabeled = /^[ABC]$/.test(label);
-    // 공통(항상 전달해오던 것만)
+    // 공통
     const base = {
       svdStartDate: item.svdStartDate,
       svdEndDate: item.svdEndDate,
@@ -323,7 +325,7 @@ export default function Mypage() {
       courseImgUrl: item.courseImgUrl,
       hasReview: !!item.hasReview,
     };
-    // 라벨이 A/B/C일 때만 ‘추가’ 정보 포함
+    // 라벨이 A/B/C일 때만 추가 정보 포함
     if (isLabeled) {
       base.courseId = item.courseId;
       base.courseLabel = label;

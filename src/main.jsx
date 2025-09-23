@@ -6,7 +6,7 @@ import Main from './home/Home.jsx'
 import Auth from './auth/Auth.jsx';
 import Generator from './generator/Generator.jsx';
 import CoursePick from './coursePick/CoursePick.jsx';
-import CourseEditor from './CourseEditor/CourseEditor.jsx';
+import CourseEditor from './courseEditor/CourseEditor.jsx';
 import Success from './success/Success.jsx';
 import CourseDetail from './coursePick/CourseDetail.jsx';
 import Mypage from './mypage/Mypage.jsx';

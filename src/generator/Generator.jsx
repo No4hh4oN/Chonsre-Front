@@ -1,4 +1,6 @@
 /* eslint-disable no-unused-vars */
+/* eslint-disable no-empty */
+
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import Modal from 'react-modal';
@@ -112,13 +114,12 @@ export default function Generator() {
 
     const handleTemaClick = (tema) => {
         setSelectedTema(tema);
-        console.log("선택된 테마:", tema); // 디버깅용
     };
 
 
     // 지역 추천받기
-    // 서버에서 원하는 형식이랑 차이가 있어서 전처리 과정후 전송해야함
-    // 
+    // 서버에서 원하는 형식이랑 차이가 있어서 전처리 과정후 전송해야한당
+
     const [progress, setProgress] = useState(0);
     const [isProgressDone, setIsProgressDone] = useState(false);
     const [recommendedRegion, setRecommendedRegion] = useState("");
@@ -155,14 +156,12 @@ export default function Generator() {
                 isTemplate: false
             });
 
-            console.log(res.data);
             localStorage.setItem("groupId", res.data.groupId);
             localStorage.setItem("inpStartDate", startDate);
             localStorage.setItem("inpEndDate", endDate);
             navigator('/CourseEditor');
         } catch (err) {
-            console.error(err);
-            alert("코스 추천 요청에 실패했습니다.");
+            // console.error(err);
         }
     }
 
@@ -198,7 +197,6 @@ export default function Generator() {
             const res = await AxiosClient.get('/auth/me');
             setNickname(res.data.nickname);
         } catch (error) {
-            //
         }
     }
 

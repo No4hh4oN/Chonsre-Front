@@ -15,7 +15,6 @@
     width: 1200px;
     height: 94px;
     background-color: #FFFFFF;
-
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -138,6 +137,7 @@
     height: 84px;
     border-radius: 50%;
     object-fit: cover;
+    margin-top: 10px;
 }
 
 .userNickname_Email {
@@ -149,7 +149,6 @@
     display: flex;
     align-self: center;
     gap: 8px;
-    margin-top: 10px;
 }
 
 .Header_UserMenu_NavItems {

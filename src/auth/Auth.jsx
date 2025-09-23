@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import './Auth.css';
 import { useEffect, useState } from "react";
 
@@ -42,14 +43,13 @@ export default function Auth() {
                     localStorage.setItem("accessToken", accessToken);
                     if (profileImg) localStorage.setItem("profileImg", profileImg);
                     if (userNickname) localStorage.setItem("nickname", userNickname);
-
                     if (userNickname) {
                         window.location.href = "/";
                     } else {
                         setIsLoggedIn(true);
                     }
                 } catch (err) {
-                    console.error(err);
+                    // console.error(err);
                 }
             };
 
@@ -64,7 +64,7 @@ export default function Auth() {
             alert(res.data.message);
             window.location.href = "/";
         } catch (err) {
-            console.error(err);
+            // console.error(err);
         }
     };
 

@@ -17,9 +17,9 @@ export default function ProfileEditModal({ isOpen, onClose }) {
 
   const handleApply = async () => {
     const token = localStorage.getItem("accessToken");
-    if (!token) { 
-      alert("로그인 토큰이 없습니다. 다시 로그인해 주세요."); 
-      return; 
+    if (!token) {
+      alert("다시 로그인해 주세요.");
+      return;
     }
 
     let success = true;
@@ -29,9 +29,9 @@ export default function ProfileEditModal({ isOpen, onClose }) {
       try {
         const r1 = await fetch("https://smartzoo.shop/auth/SetNickname", {
           method: "POST",
-          headers: { 
-            "Content-Type": "application/json", 
-            "Authorization": `Bearer ${token}` 
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
           },
           body: JSON.stringify({ nickname: newNick }),
         });

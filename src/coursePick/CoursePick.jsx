@@ -300,7 +300,7 @@ export default function CoursePick() {
   // 첫 렌더 시 기본값으로 자동 검색
   useEffect(() => {
     handleSearchClick();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
 
   // 찾기 클릭 → 타입/기간에 따른 데이터 소스 선택
@@ -458,8 +458,7 @@ export default function CoursePick() {
       setCourses([]);
       setCurrentPage(1);
     } catch (error) {
-      console.error("검색 요청 실패:", error);
-      alert("검색 요청 실패. 콘솔을 확인하세요.");
+      // console.error("검색 요청 실패:", error);
     } finally {
       setLoading(false);
     }
@@ -491,7 +490,7 @@ export default function CoursePick() {
           <div className="pick-type-dropdown">
             <div className="pick-type-dropdown-menu-top" onClick={toggleTypeDropdown}>
               {selectedType || "타입 선택"}
-              <img className="dropdown-arrow" src={isTypeDropdownOpen ? pickdowndrop : pickdrop} alt="드롭다운 화살표" />
+              <img className="dropdown-arrow" src={isTypeDropdownOpen ? pickdrop : pickdowndrop} alt="드롭다운 화살표" />
             </div>
             {isTypeDropdownOpen && (
               <div className="pick-dropdown-menu">
@@ -517,7 +516,7 @@ export default function CoursePick() {
           <div className="pick-period-dropdown">
             <div className="pick-type-dropdown-menu-top" onClick={togglePeriodDropdown}>
               <span>{selectedPeriod || "기간 선택"}</span>
-              <img className="dropdown-arrow" src={isPeriodDropdownOpen ? pickdowndrop : pickdrop} alt="드롭다운 화살표" />
+              <img className="dropdown-arrow" src={isPeriodDropdownOpen ? pickdrop : pickdowndrop} alt="드롭다운 화살표" />
             </div>
             {isPeriodDropdownOpen && (
               <div className="pick-dropdown-menu">

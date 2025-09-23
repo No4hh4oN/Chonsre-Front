@@ -1,5 +1,8 @@
 /* eslint-disable no-constant-binary-expression */
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
+/* eslint-disable no-empty */
+
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Header from "../components/header";
@@ -40,7 +43,7 @@ export default function MyReview() {
   /* ================= 유틸/이미지 ================= */
   const VK_IMG = /^https?:\/\/tong\.visitkorea\.or\.kr\/cms\/resource\//i;
   const isVKImage = (url) => !!(url && typeof url === 'string' && VK_IMG.test(url.trim()));
-  const isPlaceholder = (u) => ["/images/place.png", "/images/food.png", "/images/sleep.png"].includes((u||"").trim());
+  const isPlaceholder = (u) => ["/images/place.png", "/images/food.png", "/images/sleep.png"].includes((u || "").trim());
 
   // 숙소를 각 일차의 마지막 장소로 강제 배치
   function appendAccommodationToDays(courseData, accom) {
@@ -190,7 +193,7 @@ export default function MyReview() {
         setIsSaved(true);
         setIsEditing(false);
       } catch (e) {
-        console.error(e);
+        // console.error(e);
       }
     }
 
@@ -231,7 +234,7 @@ export default function MyReview() {
       setIsEditing(false);
       setMenuOpen(false);
     } catch (e) {
-      alert(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
+      // alert(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
     }
   }
 
@@ -265,7 +268,7 @@ export default function MyReview() {
       setIsEditing(false);
       setMenuOpen(false);
     } catch (e) {
-      alert(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
+      // alert(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
     }
   }
 

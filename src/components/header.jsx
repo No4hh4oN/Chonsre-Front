@@ -1,21 +1,18 @@
+/* eslint-disable no-unused-vars */
 import '../assets/styles/header.css';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import ProfileEditModal from "./profileModal";
 import defaultProfile from '/icons/default.png';
 import dropdown from '/icons/dropdown1.png';
 import AxiosClient, { setAuthToken } from "../AxiosClient";
-import ProfileEditModal from "./profileModal";
-
 
 export default function Header() {
   const navigator = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [nickname, setNickname] = useState('');
   const [profileImg, setProfileImg] = useState(null);
-
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-
 
   useEffect(() => {
     const accessToken = localStorage.getItem('accessToken');
@@ -36,7 +33,7 @@ export default function Header() {
         setProfileImg(img);
         setIsLoggedIn(true);
       } catch (error) {
-        console.error('유저 정보 불러오기 실패:', error);
+        // console.error('유저 정보 불러오기 실패:', error);
         setIsLoggedIn(false);
       }
     };
@@ -65,17 +62,6 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    setIsDropdowned(false);
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('profileImg');
-    setAuthToken(null);
-    setIsLoggedIn(false);
-    setNickname('');
-    setProfileImg(null);
-    navigator('/');
-  };
-
   // 프로필 변경사항 바로 반영
   useEffect(() => {
     const onProfileUpdated = (e) => {
@@ -93,6 +79,16 @@ export default function Header() {
     return () => window.removeEventListener("profile:updated", onProfileUpdated);
   }, []);
 
+  const handleLogout = () => {
+    setIsDropdowned(false);
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('profileImg');
+    setAuthToken(null);
+    setIsLoggedIn(false);
+    setNickname('');
+    setProfileImg(null);
+    navigator('/');
+  };
 
   return (
     <div className='Header'>

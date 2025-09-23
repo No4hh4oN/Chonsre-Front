@@ -56,8 +56,8 @@ export default function CourseEditor() {
   // Kakao Map 관련 ref들
   const mapRef = useRef(null);
   const geocoderRef = useRef(null);
-  const idToLatLngRef = useRef(new Map()); // {id -> kakao.maps.LatLng}
-  const infoRef = useRef(null); // 단일 InfoWindow 재사용
+  const idToLatLngRef = useRef(new Map());
+  const infoRef = useRef(null);
 
   useEffect(() => {
 
@@ -65,8 +65,8 @@ export default function CourseEditor() {
     const token = localStorage.getItem("accessToken");
 
     if (!groupId || !token) {
-      alert("비정상적인 접근입니다.");
-      navigator(-1); // 한 단계만 뒤로
+      alert("로그인 후 이용해주세요.");
+      navigator(-1);
       setLoading(false);
       return;
     }
@@ -114,8 +114,8 @@ export default function CourseEditor() {
 
         setCourses(formatted);
       } catch (err) {
-        console.error("코스 정보 조회 실패:", err);
-        alert("코스 정보를 불러오는 데 실패했습니다.");
+        // console.error("코스 정보 조회 실패:", err);
+        // alert("코스 정보를 불러오는 데 실패했습니다.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -214,7 +214,6 @@ export default function CourseEditor() {
 
       const currentCourse = courses[selectedCourse];
       if (!currentCourse?.courseId) {
-        alert("courseId가 없어 저장할 수 없습니다. (코스 상세를 먼저 불러오세요)");
         setSaving(false);
         return;
       }
@@ -480,13 +479,12 @@ export default function CourseEditor() {
 
       const currentCourse = courses[selectedCourse];
       if (!currentCourse?.courseId) {
-        alert("courseId가 없어 확정할 수 없습니다. 코스 정보를 다시 불러와 주세요.");
         setFinalizing(false);
         return;
       }
-      
+
       const payload = buildCoursePayload(currentCourse);
-      
+
       await AxiosClient.put(`/recommend/courses/${currentCourse.courseId}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -497,7 +495,10 @@ export default function CourseEditor() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const { savedId, courseId, groupId } = res.data || {};
+      localStorage.removeItem("groupId");
+      localStorage.removeItem("inpStartDate");
+      localStorage.removeItem("inpEndDate");
+
       navigator('/Success');
     } catch (err) {
       alert("코스 확정에 실패했습니다. 다시 시도해 주세요.");
@@ -561,9 +562,6 @@ export default function CourseEditor() {
     const county = (_county ?? searchCounty).trim();
     const limit = Number.isFinite(_limit) ? _limit : searchLimit;
 
-    console.log('[doSearch] start', { keyword, county, limit });
-
-
     if (!keyword) {
       setSearchError("검색어를 입력해 주세요.");
       setSearchResults([]);
@@ -591,7 +589,7 @@ export default function CourseEditor() {
       const list = Array.isArray(res?.data?.results) ? res.data.results : [];
       setSearchResults(list);
     } catch (e) {
-      console.error(e);
+      // console.error(e);
       setSearchError("검색 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
       setSearchResults([]);
       setSearchOpen(true);

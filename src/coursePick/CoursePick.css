@@ -109,6 +109,7 @@
     text-align: center;
     color: #ffffff;
     margin-left: 250px;
+    cursor: pointer;
 }
 
 .pick-type-dropdown-menu-top {
@@ -118,6 +119,7 @@
     align-items: center;
     justify-content: center;
     gap: 20px;
+    cursor: pointer;
 }
 
 /* 추천코스 */
@@ -165,7 +167,7 @@
     color: #8F959B;
 }
 
-/* 하단 숫자 바*/
+/* 하단 페이지네이션 바*/
 .pagination {
     font-family: 'Pretendard-Medium';
     font-weight: 500;

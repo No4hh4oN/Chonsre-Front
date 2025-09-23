@@ -7,7 +7,7 @@
     flex-direction: row;
     /* align-items: center; */
     justify-content: center;
-    overflow: hidden;      /*전체스크롤 막기*/
+    overflow: hidden;
 }
 
 .mypage-left-box{
@@ -56,7 +56,6 @@
     font-family: 'Pretendard-SemiBold';
     font-weight: 600;
     font-size: 22px;
-    /* color: #2C2F33; */
     color: #D3D8DE;
     margin-bottom: 50px;
 }
@@ -74,7 +73,7 @@
     background-color: #F8F9FB;
     display: flex;
     flex-direction: column;
-    min-height: 0;             /* 자식에서 overflow 작동 */
+    min-height: 0;
     overflow-y: auto;
     padding-top: 72px ;
     padding-left: 69px;
@@ -159,6 +158,7 @@
     font-family: 'Pretendard-SemiBold';
     font-weight: 600;
     font-size: 18px;
+    cursor: pointer;
 }
 
 .scheduled-d-day{
@@ -220,23 +220,16 @@
     right: 12px;
     top: 45px;
 }
-/* .record-menu-edit img{
-    width: 26px;
-    height: 26px;
-} */
+
+.record-menu-trigger {
+    cursor: pointer;
+}
+
 .record-menu-delete img{
     width: 26px;
     height: 26px;
 }
 
-/* .record-menu-edit{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-    color: #656B70;
-    margin-right: 10px;
-} */
 .record-menu-delete{
     color: #F66A6A;
     display: flex;

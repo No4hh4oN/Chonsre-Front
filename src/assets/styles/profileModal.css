@@ -4,8 +4,8 @@
     border-radius: 30px;
     background-color: #FFFFFF;
     /* 중앙 배치 */
-    position: fixed;      
-    top: 50%;             
+    position: fixed;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     border: none;
@@ -14,13 +14,14 @@
     padding: 10px;
 }
 
-.modal-profile{
+.modal-profile {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
 }
-.modal-profile-edit-top{
+
+.modal-profile-edit-top {
     display: flex;
     flex-direction: column;
     font-family: 'Pretendard-SemiBold';
@@ -31,13 +32,13 @@
     margin-top: 100px;
 }
 
-.modal-nickname-box{
+.modal-nickname-box {
     display: flex;
     flex-direction: column;
     margin-top: 10px;
 }
 
-.modal-nickname-box input{
+.modal-nickname-box input {
     width: 421px;
     height: 75px;
     border-radius: 20px;
@@ -52,7 +53,7 @@
     text-align: center;
 }
 
-.modal-nickname-box input::placeholder{
+.modal-nickname-box input::placeholder {
     font-family: 'Pretendard-SemiBold';
     font-weight: 600;
     font-size: 24px;
@@ -60,14 +61,14 @@
     text-align: center;
 }
 
-.modal-edit-finish-buttons{
+.modal-edit-finish-buttons {
     margin-top: 80px;
     display: flex;
     flex-direction: row;
     gap: 30px;
 }
 
-.modal-edit-finish-buttons button:first-child{
+.modal-edit-finish-buttons button:first-child {
     width: 265px;
     height: 75px;
     border-radius: 20px;
@@ -81,7 +82,7 @@
     cursor: pointer;
 }
 
-.modal-edit-finish-buttons button:last-child{
+.modal-edit-finish-buttons button:last-child {
     width: 265px;
     height: 75px;
     border-radius: 20px;
@@ -95,5 +96,11 @@
     cursor: pointer;
 }
 
-.ReactModal__Overlay { z-index: 2147483647 !important; }
-.ProfileEdit-modal { position: relative; z-index: 2147483647 !important; }
+.ReactModal__Overlay {
+    z-index: 2147483647 !important;
+}
+
+.ProfileEdit-modal {
+    position: relative;
+    z-index: 2147483647 !important;
+}
